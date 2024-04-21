@@ -1,0 +1,48 @@
+import * as $promise from "../../../gleam_javascript/gleam/javascript/promise.mjs";
+import * as $dynamic from "../../../gleam_stdlib/gleam/dynamic.mjs";
+import * as $event from "../../plinth/browser/event.mjs";
+import {
+  self,
+  alert,
+  addEventListener as add_event_listener,
+  requestWakeLock as request_wake_lock,
+  location,
+  locationOf as location_of,
+  reload,
+  getHash as get_hash,
+  getSearch as get_search,
+  innerHeight as inner_height,
+  innerWidth as inner_width,
+  outerHeight as outer_height,
+  outerWidth as outer_width,
+  open,
+  close,
+  closed,
+  queueMicrotask as queue_microtask,
+  requestAnimationFrame as request_animation_frame,
+  cancelAnimationFrame as cancel_animation_frame,
+  eval_ as eval$,
+} from "../../window_ffi.mjs";
+
+export {
+  add_event_listener,
+  alert,
+  cancel_animation_frame,
+  close,
+  closed,
+  eval$,
+  get_hash,
+  get_search,
+  inner_height,
+  inner_width,
+  location,
+  location_of,
+  open,
+  outer_height,
+  outer_width,
+  queue_microtask,
+  reload,
+  request_animation_frame,
+  request_wake_lock,
+  self,
+};

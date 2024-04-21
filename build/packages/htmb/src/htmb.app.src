@@ -1,0 +1,8 @@
+{application, htmb, [
+    {vsn, "2.0.0"},
+    {applications, [gleam_stdlib,
+                    gleeunit]},
+    {description, "A tiny HTML builder for Gleam"},
+    {modules, [htmb]},
+    {registered, []}
+]}.

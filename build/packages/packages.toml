@@ -1,0 +1,8 @@
+[packages]
+thoas = "0.4.1"
+gleam_javascript = "0.8.0"
+gleeunit = "1.1.2"
+gleam_json = "1.0.0"
+htmb = "2.0.0"
+plinth = "0.2.0"
+gleam_stdlib = "0.37.0"
