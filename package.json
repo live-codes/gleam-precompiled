@@ -1,6 +1,6 @@
 {
   "name": "@live-codes/gleam-precompiled",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Gleam wasm compiler and precompiled Gleam standard library and some packages for use in LiveCodes.",
   "main": "demo/hello.js",
   "scripts": {},

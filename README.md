@@ -4,6 +4,9 @@ This repo hosts the [Gleam](https://gleam.run) wasm compiler and precompiled Gle
 
 https://livecodes.io/?template=gleam
 
+See docs for details:
+https://livecodes.io/docs/languages/gleam/
+
 ## License
 
 MIT License
