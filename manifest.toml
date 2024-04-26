@@ -12,18 +12,20 @@ packages = [
   { name = "gleam_stdlib", version = "0.37.0", build_tools = ["gleam"], requirements = [], otp_app = "gleam_stdlib", source = "hex", outer_checksum = "5398BD6C2ABA17338F676F42F404B9B7BABE1C8DC7380031ACB05BBE1BCF3742" },
   { name = "gleeunit", version = "1.1.2", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "gleeunit", source = "hex", outer_checksum = "72CDC3D3F719478F26C4E2C5FED3E657AC81EC14A47D2D2DEBB8693CA3220C3B" },
   { name = "htmb", version = "2.0.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "htmb", source = "hex", outer_checksum = "915186FE1759EB8B78CBDC01228D0B7ED74DA2E64B08B4115525E293B036C428" },
+  { name = "lustre", version = "4.2.0", build_tools = ["gleam"], requirements = ["gleam_erlang", "gleam_json", "gleam_otp", "gleam_stdlib"], otp_app = "lustre", source = "hex", outer_checksum = "258F876CD7AB12C2C773F1A30F76DFC0A0ED989B720070DF32FC0717A6A0E60C" },
   { name = "plinth", version = "0.2.0", build_tools = ["gleam"], requirements = ["gleam_javascript", "gleam_json", "gleam_stdlib"], otp_app = "plinth", source = "hex", outer_checksum = "83211E672D83F3CE14681D0ECD3AD883EE7588E423E7C9DDDB460014AD60AC24" },
   { name = "thoas", version = "0.4.1", build_tools = ["rebar3"], requirements = [], otp_app = "thoas", source = "hex", outer_checksum = "4918D50026C073C4AB1388437132C77A6F6F7C8AC43C60C13758CC0ADCE2134E" },
 ]
 
 [requirements]
-gleam_crypto = { version = ">= 1.3.0 and < 2.0.0"}
-gleam_fetch = { version = ">= 1.0.0 and < 2.0.0"}
-gleam_http = { version = ">= 3.6.0 and < 4.0.0"}
+gleam_crypto = { version = ">= 1.3.0 and < 2.0.0" }
+gleam_fetch = { version = ">= 1.0.0 and < 2.0.0" }
+gleam_http = { version = ">= 3.6.0 and < 4.0.0" }
 gleam_javascript = { version = ">= 0.8.0 and < 1.0.0" }
 gleam_json = { version = ">= 1.0.0 and < 2.0.0" }
-gleam_otp = { version = ">= 0.10.0 and < 1.0.0"}
+gleam_otp = { version = ">= 0.10.0 and < 1.0.0" }
 gleam_stdlib = { version = ">= 0.37.0 and < 1.0.0" }
 gleeunit = { version = ">= 1.0.0 and < 2.0.0" }
 htmb = { version = ">= 2.0.0 and < 3.0.0" }
+lustre = { version = ">= 4.2.0 and < 5.0.0"}
 plinth = { version = ">= 0.2.0 and < 1.0.0" }
