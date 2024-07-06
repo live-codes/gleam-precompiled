@@ -253,3 +253,30 @@ function do_filter(f, dict) {
 export function filter(dict, predicate) {
   return do_filter(predicate, dict);
 }
+
+export function each(dict, fun) {
+  return fold(
+    dict,
+    undefined,
+    (nil, k, v) => {
+      fun(k, v);
+      return nil;
+    },
+  );
+}
+
+export function combine(dict, other, fun) {
+  return fold(
+    dict,
+    other,
+    (acc, key, value) => {
+      let $ = get(acc, key);
+      if ($.isOk()) {
+        let other_value = $[0];
+        return insert(acc, key, fun(value, other_value));
+      } else {
+        return insert(acc, key, value);
+      }
+    },
+  );
+}

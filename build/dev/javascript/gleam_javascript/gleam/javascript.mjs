@@ -1,3 +1,4 @@
+import { CustomType as $CustomType } from "../gleam.mjs";
 import {
   type_of,
   get_symbol,
@@ -5,8 +6,7 @@ import {
   set_reference,
   make_reference,
   reference_equal,
-} from "../ffi.mjs";
-import { CustomType as $CustomType } from "../gleam.mjs";
+} from "../gleam_javascript_ffi.mjs";
 
 export {
   dereference,

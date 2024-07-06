@@ -1,7 +1,7 @@
 -module(gleam@dict).
 -compile([no_auto_import, nowarn_unused_vars, nowarn_unused_function, nowarn_nomatch]).
 
--export([size/1, to_list/1, new/0, get/2, has_key/2, insert/3, from_list/1, keys/1, values/1, take/2, merge/2, delete/2, drop/2, update/3, fold/3, map_values/2, filter/2]).
+-export([size/1, to_list/1, new/0, get/2, has_key/2, insert/3, from_list/1, keys/1, values/1, take/2, merge/2, delete/2, drop/2, update/3, fold/3, map_values/2, filter/2, each/2, combine/3]).
 -export_type([dict/2]).
 
 -type dict(KF, KG) :: any() | {gleam_phantom, KF, KG}.
@@ -47,7 +47,7 @@ fold_list_of_pair(List, Initial) ->
 from_list(List) ->
     maps:from_list(List).
 
--spec reverse_and_concat(list(TF), list(TF)) -> list(TF).
+-spec reverse_and_concat(list(TS), list(TS)) -> list(TS).
 reverse_and_concat(Remaining, Accumulator) ->
     case Remaining of
         [] ->
@@ -169,3 +169,24 @@ map_values(Dict, Fun) ->
 -spec filter(dict(OL, OM), fun((OL, OM) -> boolean())) -> dict(OL, OM).
 filter(Dict, Predicate) ->
     maps:filter(Predicate, Dict).
+
+-spec each(dict(SG, SH), fun((SG, SH) -> any())) -> nil.
+each(Dict, Fun) ->
+    fold(
+        Dict,
+        nil,
+        fun(Nil, K, V) ->
+            Fun(K, V),
+            Nil
+        end
+    ).
+
+-spec combine(dict(SL, SM), dict(SL, SM), fun((SM, SM) -> SM)) -> dict(SL, SM).
+combine(Dict, Other, Fun) ->
+    fold(Dict, Other, fun(Acc, Key, Value) -> case get(Acc, Key) of
+                {ok, Other_value} ->
+                    insert(Acc, Key, Fun(Value, Other_value));
+
+                {error, _} ->
+                    insert(Acc, Key, Value)
+            end end).

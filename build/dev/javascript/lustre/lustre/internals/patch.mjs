@@ -6,6 +6,8 @@ import * as $int from "../../../gleam_stdlib/gleam/int.mjs";
 import * as $list from "../../../gleam_stdlib/gleam/list.mjs";
 import * as $option from "../../../gleam_stdlib/gleam/option.mjs";
 import { None, Some } from "../../../gleam_stdlib/gleam/option.mjs";
+import * as $order from "../../../gleam_stdlib/gleam/order.mjs";
+import { Eq, Gt, Lt } from "../../../gleam_stdlib/gleam/order.mjs";
 import * as $set from "../../../gleam_stdlib/gleam/set.mjs";
 import * as $string from "../../../gleam_stdlib/gleam/string.mjs";
 import {
@@ -14,6 +16,7 @@ import {
   toList,
   prepend as listPrepend,
   CustomType as $CustomType,
+  makeError,
   isEqual,
 } from "../../gleam.mjs";
 import * as $constants from "../../lustre/internals/constants.mjs";
@@ -94,6 +97,69 @@ function do_attribute(diff, key, old, new$) {
     let new$1 = new$[0];
     return diff.withFields({ created: $set.insert(diff.created, new$1) });
   }
+}
+
+function do_key_sort(loop$xs, loop$ys) {
+  while (true) {
+    let xs = loop$xs;
+    let ys = loop$ys;
+    if (xs.hasLength(0) && ys.hasLength(0)) {
+      return new Eq();
+    } else if (xs.hasLength(0)) {
+      return new Lt();
+    } else if (ys.hasLength(0)) {
+      return new Gt();
+    } else if (xs.atLeastLength(1) &&
+    xs.head === "-" &&
+    ys.atLeastLength(1) &&
+    ys.head === "-") {
+      let xs$1 = xs.tail;
+      let ys$1 = ys.tail;
+      loop$xs = xs$1;
+      loop$ys = ys$1;
+    } else {
+      let x = xs.head;
+      let xs$1 = xs.tail;
+      let y = ys.head;
+      let ys$1 = ys.tail;
+      let $ = $int.parse(x);
+      if (!$.isOk()) {
+        throw makeError(
+          "assignment_no_match",
+          "lustre/internals/patch",
+          298,
+          "do_key_sort",
+          "Assignment pattern did not match",
+          { value: $ }
+        )
+      }
+      let x$1 = $[0];
+      let $1 = $int.parse(y);
+      if (!$1.isOk()) {
+        throw makeError(
+          "assignment_no_match",
+          "lustre/internals/patch",
+          299,
+          "do_key_sort",
+          "Assignment pattern did not match",
+          { value: $1 }
+        )
+      }
+      let y$1 = $1[0];
+      let $2 = $int.compare(x$1, y$1);
+      if ($2 instanceof Eq) {
+        loop$xs = xs$1;
+        loop$ys = ys$1;
+      } else {
+        let order = $2;
+        return order;
+      }
+    }
+  }
+}
+
+function key_sort(x, y) {
+  return do_key_sort($string.split(x, "-"), $string.split(y, "-"));
 }
 
 export function attribute_diff_to_json(diff, key) {
@@ -259,27 +325,43 @@ export function element_diff_to_json(diff) {
     toList([
       $json.preprocessed_array(
         $list.reverse(
-          $dict.fold(
-            diff.created,
-            toList([]),
-            (array, key, element) => {
-              let json = $json.preprocessed_array(
-                toList([$json.string(key), $vdom.element_to_json(element)]),
-              );
-              return listPrepend(json, array);
-            },
-          ),
+          (() => {
+            let _pipe = $dict.to_list(diff.created);
+            let _pipe$1 = $list.sort(
+              _pipe,
+              (x, y) => { return key_sort(x[0], y[0]); },
+            );
+            return $list.fold(
+              _pipe$1,
+              toList([]),
+              (array, patch) => {
+                let key = patch[0];
+                let element = patch[1];
+                let json = $json.preprocessed_array(
+                  toList([
+                    $json.string(key),
+                    $vdom.element_to_json(element, key),
+                  ]),
+                );
+                return listPrepend(json, array);
+              },
+            );
+          })(),
         ),
       ),
       $json.preprocessed_array(
-        $set.fold(
-          diff.removed,
-          toList([]),
-          (array, key) => {
-            let json = $json.preprocessed_array(toList([$json.string(key)]));
-            return listPrepend(json, array);
-          },
-        ),
+        (() => {
+          let _pipe = $set.to_list(diff.removed);
+          let _pipe$1 = $list.sort(_pipe, key_sort);
+          return $list.fold(
+            _pipe$1,
+            toList([]),
+            (array, key) => {
+              let json = $json.preprocessed_array(toList([$json.string(key)]));
+              return listPrepend(json, array);
+            },
+          );
+        })(),
       ),
       $json.preprocessed_array(
         $list.reverse(
@@ -327,7 +409,7 @@ export function patch_to_json(patch) {
       toList([
         $json.int($constants.init),
         $json.array(attrs, $json.string),
-        $vdom.element_to_json(element),
+        $vdom.element_to_json(element, "0"),
       ]),
     );
   }
@@ -503,8 +585,7 @@ function fold_event_handlers(loop$handlers, loop$element, loop$key) {
           if ($.isOk()) {
             let name = $[0][0];
             let handler = $[0][1];
-            let name$1 = $string.drop_left(name, 2);
-            return $dict.insert(handlers, (key + "-") + name$1, handler);
+            return $dict.insert(handlers, (key + "-") + name, handler);
           } else {
             return handlers;
           }

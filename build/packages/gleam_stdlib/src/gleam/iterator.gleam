@@ -1,9 +1,9 @@
-import gleam/result
+import gleam/dict.{type Dict}
 import gleam/int
 import gleam/list
-import gleam/dict.{type Dict}
 import gleam/option.{type Option, None, Some}
 import gleam/order
+import gleam/result
 
 // Internal private representation of an Iterator
 type Action(element) {
@@ -553,6 +553,7 @@ fn do_filter(
 ///
 /// ```gleam
 /// import gleam/int
+///
 /// from_list([1, 2, 3, 4])
 /// |> filter(int.is_even)
 /// |> to_list
@@ -582,18 +583,19 @@ fn do_filter_map(
 }
 
 /// Creates an iterator from an existing iterator and a transforming predicate function.
-/// 
+///
 /// The new iterator will contain elements from the first iterator for which
 /// the given function returns `Ok`, transformed to the value inside the `Ok`.
-/// 
+///
 /// This function does not evaluate the elements of the iterator, the
 /// computation is performed when the iterator is later run.
-/// 
+///
 /// ## Examples
-/// 
+///
 /// ```gleam
 /// import gleam/string
 /// import gleam/int
+///
 /// "a1b2c3d4e5f"
 /// |> string.to_graphemes
 /// |> from_list
@@ -601,7 +603,7 @@ fn do_filter_map(
 /// |> to_list
 /// // -> [1, 2, 3, 4, 5]
 /// ```
-/// 
+///
 pub fn filter_map(
   iterator: Iterator(a),
   keeping_with f: fn(a) -> Result(b, c),
@@ -708,6 +710,51 @@ pub fn find(
 ) -> Result(a, Nil) {
   haystack.continuation
   |> do_find(is_desired)
+}
+
+fn do_find_map(
+  continuation: fn() -> Action(a),
+  f: fn(a) -> Result(b, c),
+) -> Result(b, Nil) {
+  case continuation() {
+    Stop -> Error(Nil)
+    Continue(e, next) ->
+      case f(e) {
+        Ok(e) -> Ok(e)
+        Error(_) -> do_find_map(next, f)
+      }
+  }
+}
+
+/// Finds the first element in a given iterator
+/// for which the given function returns `Ok(new_value)`,
+/// then returns the wrapped `new_value`.
+///
+/// Returns `Error(Nil)` if no such element is found.
+///
+/// ## Examples
+///
+/// ```gleam
+/// find_map(from_list([1, 2, 3]), first)
+/// // -> Ok(1)
+/// ```
+///
+/// ```gleam
+/// find_map(from_list([]), first)
+/// // -> Error(Nil)
+/// ```
+///
+/// ```gleam
+/// find(empty(), first)
+/// // -> Error(Nil)
+/// ```
+///
+pub fn find_map(
+  in haystack: Iterator(a),
+  one_that is_desired: fn(a) -> Result(b, c),
+) -> Result(b, Nil) {
+  haystack.continuation
+  |> do_find_map(is_desired)
 }
 
 fn do_index(
@@ -1564,6 +1611,7 @@ pub fn each(over iterator: Iterator(a), with f: fn(a) -> b) -> Nil {
 ///   use <- yield(3)
 ///   empty()
 /// }
+///
 /// iterator |> to_list
 /// // -> [1, 2, 3]
 /// ```

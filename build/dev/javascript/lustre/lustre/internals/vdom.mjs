@@ -1,6 +1,7 @@
 import * as $json from "../../../gleam_json/gleam/json.mjs";
 import * as $dict from "../../../gleam_stdlib/gleam/dict.mjs";
 import * as $dynamic from "../../../gleam_stdlib/gleam/dynamic.mjs";
+import * as $float from "../../../gleam_stdlib/gleam/float.mjs";
 import * as $int from "../../../gleam_stdlib/gleam/int.mjs";
 import * as $list from "../../../gleam_stdlib/gleam/list.mjs";
 import * as $string from "../../../gleam_stdlib/gleam/string.mjs";
@@ -13,6 +14,8 @@ import {
   CustomType as $CustomType,
   isEqual,
 } from "../../gleam.mjs";
+import * as $escape from "../../lustre/internals/escape.mjs";
+import { escape } from "../../lustre/internals/escape.mjs";
 
 export class Text extends $CustomType {
   constructor(content) {
@@ -67,6 +70,8 @@ export class Event extends $CustomType {
 }
 
 export function attribute_to_json(attribute, key) {
+  let true_atom = $dynamic.from(true);
+  let false_atom = $dynamic.from(false);
   if (attribute instanceof Attribute && attribute.as_property) {
     return new Error(undefined);
   } else if (attribute instanceof Attribute && !attribute.as_property) {
@@ -79,6 +84,25 @@ export function attribute_to_json(attribute, key) {
           toList([
             ["0", $json.string(name)],
             ["1", $json.string($dynamic.unsafe_coerce(value))],
+          ]),
+        ),
+      );
+    } else if ($ === "Atom" &&
+    ((isEqual(value, true_atom)) || (isEqual(value, false_atom)))) {
+      return new Ok(
+        $json.object(
+          toList([
+            ["0", $json.string(name)],
+            ["1", $json.bool($dynamic.unsafe_coerce(value))],
+          ]),
+        ),
+      );
+    } else if ($ === "Bool") {
+      return new Ok(
+        $json.object(
+          toList([
+            ["0", $json.string(name)],
+            ["1", $json.bool($dynamic.unsafe_coerce(value))],
           ]),
         ),
       );
@@ -126,44 +150,6 @@ export function attribute_to_json(attribute, key) {
   }
 }
 
-function escape(loop$escaped, loop$content) {
-  while (true) {
-    let escaped = loop$escaped;
-    let content = loop$content;
-    if (content.startsWith("<")) {
-      let rest = content.slice(1);
-      loop$escaped = escaped + "&lt;";
-      loop$content = rest;
-    } else if (content.startsWith(">")) {
-      let rest = content.slice(1);
-      loop$escaped = escaped + "&gt;";
-      loop$content = rest;
-    } else if (content.startsWith("&")) {
-      let rest = content.slice(1);
-      loop$escaped = escaped + "&amp;";
-      loop$content = rest;
-    } else if (content.startsWith("\"")) {
-      let rest = content.slice(1);
-      loop$escaped = escaped + "&quot;";
-      loop$content = rest;
-    } else if (content.startsWith("'")) {
-      let rest = content.slice(1);
-      loop$escaped = escaped + "&#39;";
-      loop$content = rest;
-    } else {
-      let $ = $string.pop_grapheme(content);
-      if ($.isOk()) {
-        let x = $[0][0];
-        let xs = $[0][1];
-        loop$escaped = escaped + x;
-        loop$content = xs;
-      } else {
-        return escaped;
-      }
-    }
-  }
-}
-
 function attribute_to_string_parts(attr) {
   if (attr instanceof Attribute && attr[0] === "") {
     return new Error(undefined);
@@ -177,12 +163,20 @@ function attribute_to_string_parts(attr) {
       return new Ok([name, $dynamic.unsafe_coerce(value)]);
     } else if ($ === "Atom" && (isEqual(value, true_atom))) {
       return new Ok([name, ""]);
+    } else if ($ === "Bool" && (isEqual(value, true_atom))) {
+      return new Ok([name, ""]);
     } else if ($ === "Boolean" && (isEqual(value, true_atom))) {
       return new Ok([name, ""]);
     } else if ($ === "Atom") {
       return new Error(undefined);
+    } else if ($ === "Bool") {
+      return new Error(undefined);
     } else if ($ === "Boolean") {
       return new Error(undefined);
+    } else if ($ === "Int") {
+      return new Ok([name, $int.to_string($dynamic.unsafe_coerce(value))]);
+    } else if ($ === "Float") {
+      return new Ok([name, $float.to_string($dynamic.unsafe_coerce(value))]);
     } else if (as_property) {
       return new Error(undefined);
     } else {
@@ -210,16 +204,16 @@ function attributes_to_string_builder(attrs) {
           return [html, class$, style, inner_html + val];
         } else if ($1.isOk() && $1[0][0] === "class" && (class$ === "")) {
           let val = $1[0][1];
-          return [html, escape("", val), style, inner_html];
+          return [html, escape(val), style, inner_html];
         } else if ($1.isOk() && $1[0][0] === "class") {
           let val = $1[0][1];
-          return [html, (class$ + " ") + escape("", val), style, inner_html];
+          return [html, (class$ + " ") + escape(val), style, inner_html];
         } else if ($1.isOk() && $1[0][0] === "style" && (style === "")) {
           let val = $1[0][1];
-          return [html, class$, escape("", val), inner_html];
+          return [html, class$, escape(val), inner_html];
         } else if ($1.isOk() && $1[0][0] === "style") {
           let val = $1[0][1];
-          return [html, class$, (style + " ") + escape("", val), inner_html];
+          return [html, class$, (style + " ") + escape(val), inner_html];
         } else if ($1.isOk() && $1[0][1] === "") {
           let key = $1[0][0];
           return [
@@ -234,7 +228,7 @@ function attributes_to_string_builder(attrs) {
           return [
             $string_builder.append(
               html,
-              (((" " + key) + "=\"") + escape("", val)) + "\"",
+              (((" " + key) + "=\"") + escape(val)) + "\"",
             ),
             class$,
             style,
@@ -305,7 +299,7 @@ function do_element_to_string_builder(loop$element, loop$raw_text) {
       return $string_builder.from_string(content);
     } else if (element instanceof Text) {
       let content = element.content;
-      return $string_builder.from_string(escape("", content));
+      return $string_builder.from_string(escape(content));
     } else if (element instanceof Map) {
       let subtree = element.subtree;
       loop$element = subtree();
@@ -447,13 +441,13 @@ function do_element_list_to_json(elements, key) {
       elements,
       (element, index) => {
         let key$1 = (key + "-") + $int.to_string(index);
-        return do_element_to_json(element, key$1);
+        return element_to_json(element, key$1);
       },
     ),
   );
 }
 
-function do_element_to_json(loop$element, loop$key) {
+export function element_to_json(loop$element, loop$key) {
   while (true) {
     let element = loop$element;
     let key = loop$key;
@@ -490,13 +484,11 @@ function do_element_to_json(loop$element, loop$key) {
       );
     } else {
       let elements = element.elements;
-      return do_element_list_to_json(elements, key);
+      return $json.object(
+        toList([["elements", do_element_list_to_json(elements, key)]]),
+      );
     }
   }
-}
-
-export function element_to_json(element) {
-  return do_element_to_json(element, "0");
 }
 
 function do_element_list_handlers(elements, handlers, key) {

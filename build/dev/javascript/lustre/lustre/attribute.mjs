@@ -193,11 +193,11 @@ export function src(uri) {
 }
 
 export function height(val) {
-  return property("height", $int.to_string(val));
+  return property("height", val);
 }
 
 export function width(val) {
-  return property("width", $int.to_string(val));
+  return property("width", val);
 }
 
 export function alt(text) {
@@ -250,4 +250,8 @@ export function form_novalidate(value) {
 
 export function form_target(target) {
   return attribute("formtarget", target);
+}
+
+export function open(is_open) {
+  return property("open", is_open);
 }

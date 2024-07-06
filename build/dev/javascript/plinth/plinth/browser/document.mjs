@@ -6,6 +6,7 @@ import {
   createElement as create_element,
   createTextNode as create_text_node,
   body,
+  getElementById as get_element_by_id,
 } from "../../document_ffi.mjs";
 import * as $element from "../../plinth/browser/element.mjs";
 import * as $event from "../../plinth/browser/event.mjs";
@@ -15,6 +16,7 @@ export {
   body,
   create_element,
   create_text_node,
+  get_element_by_id,
   query_selector,
   query_selector_all,
 };

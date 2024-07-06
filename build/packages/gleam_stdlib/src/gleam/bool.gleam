@@ -221,6 +221,7 @@ pub fn exclusive_nor(a: Bool, b: Bool) -> Bool {
 ///
 /// ```gleam
 /// import gleam/order
+///
 /// compare(True, False)
 /// // -> order.Gt
 /// ```
@@ -231,60 +232,6 @@ pub fn compare(a: Bool, with b: Bool) -> Order {
     True, False -> order.Gt
     False, False -> order.Eq
     False, True -> order.Lt
-  }
-}
-
-/// Returns `True` if either argument's value is `True`.
-///
-/// ## Examples
-///
-/// ```gleam
-/// max(True, False)
-/// // -> True
-/// ```
-///
-/// ```gleam
-/// max(False, True)
-/// // -> True
-/// ```
-///
-/// ```gleam
-/// max(False, False)
-/// // -> False
-/// ```
-///
-@deprecated("Use the `bool.or` function instead")
-pub fn max(a: Bool, b: Bool) -> Bool {
-  case a {
-    True -> True
-    False -> b
-  }
-}
-
-/// Returns `False` if either bool value is `False`.
-///
-/// ## Examples
-///
-/// ```gleam
-/// min(True, False)
-/// // -> False
-/// ```
-///
-/// ```gleam
-/// min(False, True)
-/// // -> False
-/// ```
-///
-/// ```gleam
-/// min(False, False)
-/// // -> False
-/// ```
-///
-@deprecated("Use the `bool.and` function instead")
-pub fn min(a: Bool, b: Bool) -> Bool {
-  case a {
-    False -> False
-    True -> b
   }
 }
 
@@ -413,6 +360,7 @@ pub fn guard(
 ///
 /// ```gleam
 /// import gleam/int
+///
 /// let name = ""
 /// let greeting = fn() { "Hello, " <> name }
 /// use <- lazy_guard(when: name == "", otherwise: greeting)

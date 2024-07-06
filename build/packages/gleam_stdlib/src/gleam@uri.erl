@@ -157,7 +157,7 @@ origin(Uri) ->
             {error, nil}
     end.
 
--spec drop_last(list(FDO)) -> list(FDO).
+-spec drop_last(list(FIT)) -> list(FIT).
 drop_last(Elements) ->
     gleam@list:take(Elements, erlang:length(Elements) - 1).
 

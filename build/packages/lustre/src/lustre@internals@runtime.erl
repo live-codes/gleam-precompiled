@@ -4,27 +4,27 @@
 -export([start/4]).
 -export_type([state/3, action/2, debug_action/0]).
 
--type state(OSO, OSP, OSQ) :: {state,
-        gleam@erlang@process:subject(action(OSP, OSQ)),
-        OSO,
-        fun((OSO, OSP) -> {OSO, lustre@effect:effect(OSP)}),
-        fun((OSO) -> lustre@internals@vdom:element(OSP)),
-        lustre@internals@vdom:element(OSP),
-        gleam@dict:dict(binary(), fun((lustre@internals@patch:patch(OSP)) -> nil)),
-        gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, OSP} |
+-type state(OXG, OXH, OXI) :: {state,
+        gleam@erlang@process:subject(action(OXH, OXI)),
+        OXG,
+        fun((OXG, OXH) -> {OXG, lustre@effect:effect(OXH)}),
+        fun((OXG) -> lustre@internals@vdom:element(OXH)),
+        lustre@internals@vdom:element(OXH),
+        gleam@dict:dict(binary(), fun((lustre@internals@patch:patch(OXH)) -> nil)),
+        gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, OXH} |
             {error, list(gleam@dynamic:decode_error())})),
-        gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, OSP} |
+        gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, OXH} |
             {error, list(gleam@dynamic:decode_error())}))}.
 
--type action(OSR, OSS) :: {attrs, list({binary(), gleam@dynamic:dynamic_()})} |
-    {batch, list(OSR), lustre@effect:effect(OSR)} |
+-type action(OXJ, OXK) :: {attrs, list({binary(), gleam@dynamic:dynamic_()})} |
+    {batch, list(OXJ), lustre@effect:effect(OXJ)} |
     {debug, debug_action()} |
-    {dispatch, OSR} |
+    {dispatch, OXJ} |
     {emit, binary(), gleam@json:json()} |
     {event, binary(), gleam@dynamic:dynamic_()} |
-    {set_selector, gleam@erlang@process:selector(action(OSR, OSS))} |
+    {set_selector, gleam@erlang@process:selector(action(OXJ, OXK))} |
     shutdown |
-    {subscribe, binary(), fun((lustre@internals@patch:patch(OSR)) -> nil)} |
+    {subscribe, binary(), fun((lustre@internals@patch:patch(OXJ)) -> nil)} |
     {unsubscribe, binary()}.
 
 -type debug_action() :: {force_model, gleam@dynamic:dynamic_()} |
@@ -33,15 +33,15 @@
         fun((lustre@internals@vdom:element(gleam@dynamic:dynamic_())) -> nil)}.
 
 -spec run_renderers(
-    gleam@dict:dict(any(), fun((lustre@internals@patch:patch(OTX)) -> nil)),
-    lustre@internals@patch:patch(OTX)
+    gleam@dict:dict(any(), fun((lustre@internals@patch:patch(OYP)) -> nil)),
+    lustre@internals@patch:patch(OYP)
 ) -> nil.
 run_renderers(Renderers, Patch) ->
     gleam@dict:fold(Renderers, nil, fun(_, _, Renderer) -> Renderer(Patch) end).
 
 -spec run_effects(
-    lustre@effect:effect(OUC),
-    gleam@erlang@process:subject(action(OUC, any()))
+    lustre@effect:effect(OYU),
+    gleam@erlang@process:subject(action(OYU, any()))
 ) -> nil.
 run_effects(Effects, Self) ->
     Dispatch = fun(Msg) -> gleam@otp@actor:send(Self, {dispatch, Msg}) end,
@@ -50,7 +50,7 @@ run_effects(Effects, Self) ->
     end,
     lustre@effect:perform(Effects, Dispatch, Emit).
 
--spec loop(action(OTH, OTI), state(OTL, OTH, OTI)) -> gleam@otp@actor:next(action(OTH, OTI), state(OTL, OTH, OTI)).
+-spec loop(action(OXZ, OYA), state(OYD, OXZ, OYA)) -> gleam@otp@actor:next(action(OXZ, OYA), state(OYD, OXZ, OYA)).
 loop(Message, State) ->
     case Message of
         {attrs, Attrs} ->
@@ -251,12 +251,12 @@ loop(Message, State) ->
     end.
 
 -spec start(
-    {OST, lustre@effect:effect(OSU)},
-    fun((OST, OSU) -> {OST, lustre@effect:effect(OSU)}),
-    fun((OST) -> lustre@internals@vdom:element(OSU)),
-    gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, OSU} |
+    {OXL, lustre@effect:effect(OXM)},
+    fun((OXL, OXM) -> {OXL, lustre@effect:effect(OXM)}),
+    fun((OXL) -> lustre@internals@vdom:element(OXM)),
+    gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, OXM} |
         {error, list(gleam@dynamic:decode_error())}))
-) -> {ok, gleam@erlang@process:subject(action(OSU, any()))} |
+) -> {ok, gleam@erlang@process:subject(action(OXM, any()))} |
     {error, gleam@otp@actor:start_error()}.
 start(Init, Update, View, On_attribute_change) ->
     Timeout = 1000,

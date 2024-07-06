@@ -4,17 +4,17 @@
 -export([new/0, from_list/1, to_list/1, is_empty/1, length/1, push_back/2, push_front/2, pop_back/1, pop_front/1, reverse/1, is_logically_equal/3, is_equal/2]).
 -export_type([queue/1]).
 
--opaque queue(ESN) :: {queue, list(ESN), list(ESN)}.
+-opaque queue(EXC) :: {queue, list(EXC), list(EXC)}.
 
 -spec new() -> queue(any()).
 new() ->
     {queue, [], []}.
 
--spec from_list(list(ESQ)) -> queue(ESQ).
+-spec from_list(list(EXF)) -> queue(EXF).
 from_list(List) ->
     {queue, [], List}.
 
--spec to_list(queue(EST)) -> list(EST).
+-spec to_list(queue(EXI)) -> list(EXI).
 to_list(Queue) ->
     _pipe = erlang:element(3, Queue),
     lists:append(_pipe, lists:reverse(erlang:element(2, Queue))).
@@ -29,15 +29,15 @@ length(Queue) ->
         erlang:element(3, Queue)
     ).
 
--spec push_back(queue(ETA), ETA) -> queue(ETA).
+-spec push_back(queue(EXP), EXP) -> queue(EXP).
 push_back(Queue, Item) ->
     {queue, [Item | erlang:element(2, Queue)], erlang:element(3, Queue)}.
 
--spec push_front(queue(ETD), ETD) -> queue(ETD).
+-spec push_front(queue(EXS), EXS) -> queue(EXS).
 push_front(Queue, Item) ->
     {queue, erlang:element(2, Queue), [Item | erlang:element(3, Queue)]}.
 
--spec pop_back(queue(ETG)) -> {ok, {ETG, queue(ETG)}} | {error, nil}.
+-spec pop_back(queue(EXV)) -> {ok, {EXV, queue(EXV)}} | {error, nil}.
 pop_back(Queue) ->
     case Queue of
         {queue, [], []} ->
@@ -51,7 +51,7 @@ pop_back(Queue) ->
             {ok, {First, Queue@1}}
     end.
 
--spec pop_front(queue(ETL)) -> {ok, {ETL, queue(ETL)}} | {error, nil}.
+-spec pop_front(queue(EYA)) -> {ok, {EYA, queue(EYA)}} | {error, nil}.
 pop_front(Queue) ->
     case Queue of
         {queue, [], []} ->
@@ -65,16 +65,16 @@ pop_front(Queue) ->
             {ok, {First, Queue@1}}
     end.
 
--spec reverse(queue(ETQ)) -> queue(ETQ).
+-spec reverse(queue(EYF)) -> queue(EYF).
 reverse(Queue) ->
     {queue, erlang:element(3, Queue), erlang:element(2, Queue)}.
 
 -spec check_equal(
-    list(ETT),
-    list(ETT),
-    list(ETT),
-    list(ETT),
-    fun((ETT, ETT) -> boolean())
+    list(EYI),
+    list(EYI),
+    list(EYI),
+    list(EYI),
+    fun((EYI, EYI) -> boolean())
 ) -> boolean().
 check_equal(Xs, X_tail, Ys, Y_tail, Eq) ->
     case {Xs, X_tail, Ys, Y_tail} of
@@ -100,7 +100,7 @@ check_equal(Xs, X_tail, Ys, Y_tail, Eq) ->
             false
     end.
 
--spec is_logically_equal(queue(ETY), queue(ETY), fun((ETY, ETY) -> boolean())) -> boolean().
+-spec is_logically_equal(queue(EYN), queue(EYN), fun((EYN, EYN) -> boolean())) -> boolean().
 is_logically_equal(A, B, Element_is_equal) ->
     check_equal(
         erlang:element(3, A),
@@ -110,7 +110,7 @@ is_logically_equal(A, B, Element_is_equal) ->
         Element_is_equal
     ).
 
--spec is_equal(queue(EUB), queue(EUB)) -> boolean().
+-spec is_equal(queue(EYQ), queue(EYQ)) -> boolean().
 is_equal(A, B) ->
     check_equal(
         erlang:element(3, A),

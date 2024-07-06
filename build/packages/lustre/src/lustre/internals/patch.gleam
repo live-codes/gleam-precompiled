@@ -7,6 +7,7 @@ import gleam/int
 import gleam/json.{type Json}
 import gleam/list
 import gleam/option.{type Option, None, Some}
+import gleam/order.{type Order, Eq, Gt, Lt}
 import gleam/set.{type Set}
 import gleam/string
 import lustre/internals/constants
@@ -97,9 +98,9 @@ fn do_elements(
         // the case, we can dif their attributes to see what (if anything) has
         // changed, and then recursively diff their children.
         Element(_, old_ns, old_tag, old_attrs, old_children, _, _),
-          Element(_, new_ns, new_tag, new_attrs, new_children, _, _) if old_ns
-          == new_ns
-          && old_tag == new_tag -> {
+          Element(_, new_ns, new_tag, new_attrs, new_children, _, _)
+          if old_ns == new_ns && old_tag == new_tag
+        -> {
           let attribute_diff = attributes(old_attrs, new_attrs)
           let handlers = {
             use handlers, name, handler <- dict.fold(
@@ -231,7 +232,7 @@ pub fn patch_to_json(patch: Patch(msg)) -> Json {
       json.preprocessed_array([
         json.int(constants.init),
         json.array(attrs, json.string),
-        vdom.element_to_json(element),
+        vdom.element_to_json(element, "0"),
       ])
   }
 }
@@ -240,21 +241,31 @@ pub fn element_diff_to_json(diff: ElementDiff(msg)) -> Json {
   json.preprocessed_array([
     json.preprocessed_array(
       list.reverse({
-        use array, key, element <- dict.fold(diff.created, [])
-        let json =
-          json.preprocessed_array([
-            json.string(key),
-            vdom.element_to_json(element),
-          ])
+        // Gleam's dictionaries are unordered, which is a bit of a problem for
+        // our runtime patching where we assume keys come in a stable order. To
+        // make our client code as fast as possible, we do the sort here rather
+        // than on the client.
+        dict.to_list(diff.created)
+        |> list.sort(fn(x, y) { key_sort(x.0, y.0) })
+        |> list.fold([], fn(array, patch) {
+          let #(key, element) = patch
+          let json =
+            json.preprocessed_array([
+              json.string(key),
+              vdom.element_to_json(element, key),
+            ])
 
-        [json, ..array]
+          [json, ..array]
+        })
       }),
     ),
     json.preprocessed_array({
-      use array, key <- set.fold(diff.removed, [])
-      let json = json.preprocessed_array([json.string(key)])
-
-      [json, ..array]
+      set.to_list(diff.removed)
+      |> list.sort(key_sort)
+      |> list.fold([], fn(array, key) {
+        let json = json.preprocessed_array([json.string(key)])
+        [json, ..array]
+      })
     }),
     json.preprocessed_array(
       list.reverse({
@@ -271,6 +282,28 @@ pub fn element_diff_to_json(diff: ElementDiff(msg)) -> Json {
       }),
     ),
   ])
+}
+
+fn key_sort(x: String, y: String) -> Order {
+  do_key_sort(string.split(x, "-"), string.split(y, "-"))
+}
+
+fn do_key_sort(xs: List(String), ys: List(String)) -> Order {
+  case xs, ys {
+    [], [] -> Eq
+    [], _ -> Lt
+    _, [] -> Gt
+    ["-", ..xs], ["-", ..ys] -> do_key_sort(xs, ys)
+    [x, ..xs], [y, ..ys] -> {
+      let assert Ok(x) = int.parse(x)
+      let assert Ok(y) = int.parse(y)
+
+      case int.compare(x, y) {
+        Eq -> do_key_sort(xs, ys)
+        order -> order
+      }
+    }
+  }
 }
 
 pub fn attribute_diff_to_json(diff: AttributeDiff(msg), key: String) -> Json {
@@ -372,7 +405,6 @@ fn fold_event_handlers(
         list.fold(attrs, handlers, fn(handlers, attr) {
           case event_handler(attr) {
             Ok(#(name, handler)) -> {
-              let name = string.drop_left(name, 2)
               dict.insert(handlers, key <> "-" <> name, handler)
             }
             Error(_) -> handlers

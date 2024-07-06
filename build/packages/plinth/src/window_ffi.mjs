@@ -32,8 +32,20 @@ export function locationOf(w) {
   }
 }
 
+export function setLocation(w, url) {
+  w.location.href = url;
+}
+
 export function reload() {
   return window.location.reload();
+}
+
+export function reloadOf(w) {
+  return w.location.reload();
+}
+
+export function focus(w) {
+  return w.focus();
 }
 
 export function getHash() {
@@ -70,6 +82,30 @@ export function outerWidth(w) {
   return w.outerWidth;
 }
 
+export function screenX(w) {
+  return w.screenX;
+}
+
+export function screenY(w) {
+  return w.screenY;
+}
+
+export function screenTop(w) {
+  return w.screenTop;
+}
+
+export function screenLeft(w) {
+  return w.screenLeft;
+}
+
+export function scrollX(w) {
+  return w.scrollX;
+}
+
+export function scrollY(w) {
+  return w.scrollY;
+}
+
 export function open(url, target, features) {
   try {
     return new Ok(window.open(url, target, features));
@@ -101,6 +137,14 @@ export function cancelAnimationFrame(callback) {
 export function eval_(string) {
   try {
     return new Ok(eval(string));
+  } catch (error) {
+    return new Error(error.toString());
+  }
+}
+
+export async function import_(string) {
+  try {
+    return new Ok(await import(string));
   } catch (error) {
     return new Error(error.toString());
   }

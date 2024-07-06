@@ -4,12 +4,12 @@
 -export([application/3, element/1, simple/3, component/4, start_actor/2, start_server_component/2, register/2, dispatch/1, shutdown/0, is_browser/0, start/3, is_registered/1]).
 -export_type([app/3, client_spa/0, server_component/0, error/0]).
 
--opaque app(PJC, PJD, PJE) :: {app,
-        fun((PJC) -> {PJD, lustre@effect:effect(PJE)}),
-        fun((PJD, PJE) -> {PJD, lustre@effect:effect(PJE)}),
-        fun((PJD) -> lustre@internals@vdom:element(PJE)),
+-opaque app(PNU, PNV, PNW) :: {app,
+        fun((PNU) -> {PNV, lustre@effect:effect(PNW)}),
+        fun((PNV, PNW) -> {PNV, lustre@effect:effect(PNW)}),
+        fun((PNV) -> lustre@internals@vdom:element(PNW)),
         gleam@option:option(gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok,
-                PJE} |
+                PNW} |
             {error, list(gleam@dynamic:decode_error())})))}.
 
 -type client_spa() :: any().
@@ -24,14 +24,14 @@
     not_erlang.
 
 -spec application(
-    fun((PJX) -> {PJY, lustre@effect:effect(PJZ)}),
-    fun((PJY, PJZ) -> {PJY, lustre@effect:effect(PJZ)}),
-    fun((PJY) -> lustre@internals@vdom:element(PJZ))
-) -> app(PJX, PJY, PJZ).
+    fun((POP) -> {POQ, lustre@effect:effect(POR)}),
+    fun((POQ, POR) -> {POQ, lustre@effect:effect(POR)}),
+    fun((POQ) -> lustre@internals@vdom:element(POR))
+) -> app(POP, POQ, POR).
 application(Init, Update, View) ->
     {app, Init, Update, View, none}.
 
--spec element(lustre@internals@vdom:element(PJL)) -> app(nil, nil, PJL).
+-spec element(lustre@internals@vdom:element(POD)) -> app(nil, nil, POD).
 element(Html) ->
     Init = fun(_) -> {nil, lustre@effect:none()} end,
     Update = fun(_, _) -> {nil, lustre@effect:none()} end,
@@ -39,33 +39,33 @@ element(Html) ->
     application(Init, Update, View).
 
 -spec simple(
-    fun((PJQ) -> PJR),
-    fun((PJR, PJS) -> PJR),
-    fun((PJR) -> lustre@internals@vdom:element(PJS))
-) -> app(PJQ, PJR, PJS).
+    fun((POI) -> POJ),
+    fun((POJ, POK) -> POJ),
+    fun((POJ) -> lustre@internals@vdom:element(POK))
+) -> app(POI, POJ, POK).
 simple(Init, Update, View) ->
     Init@1 = fun(Flags) -> {Init(Flags), lustre@effect:none()} end,
     Update@1 = fun(Model, Msg) -> {Update(Model, Msg), lustre@effect:none()} end,
     application(Init@1, Update@1, View).
 
 -spec component(
-    fun((PKG) -> {PKH, lustre@effect:effect(PKI)}),
-    fun((PKH, PKI) -> {PKH, lustre@effect:effect(PKI)}),
-    fun((PKH) -> lustre@internals@vdom:element(PKI)),
-    gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, PKI} |
+    fun((POY) -> {POZ, lustre@effect:effect(PPA)}),
+    fun((POZ, PPA) -> {POZ, lustre@effect:effect(PPA)}),
+    fun((POZ) -> lustre@internals@vdom:element(PPA)),
+    gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, PPA} |
         {error, list(gleam@dynamic:decode_error())}))
-) -> app(PKG, PKH, PKI).
+) -> app(POY, POZ, PPA).
 component(Init, Update, View, On_attribute_change) ->
     {app, Init, Update, View, {some, On_attribute_change}}.
 
--spec do_start(app(PLC, any(), PLE), binary(), PLC) -> {ok,
-        fun((lustre@internals@runtime:action(PLE, client_spa())) -> nil)} |
+-spec do_start(app(PPU, any(), PPW), binary(), PPU) -> {ok,
+        fun((lustre@internals@runtime:action(PPW, client_spa())) -> nil)} |
     {error, error()}.
 do_start(_, _, _) ->
     {error, not_a_browser}.
 
--spec do_start_actor(app(PMH, any(), PMJ), PMH) -> {ok,
-        gleam@erlang@process:subject(lustre@internals@runtime:action(PMJ, server_component()))} |
+-spec do_start_actor(app(PQZ, any(), PRB), PQZ) -> {ok,
+        gleam@erlang@process:subject(lustre@internals@runtime:action(PRB, server_component()))} |
     {error, error()}.
 do_start_actor(App, Flags) ->
     On_attribute_change = gleam@option:unwrap(
@@ -81,14 +81,14 @@ do_start_actor(App, Flags) ->
     ),
     gleam@result:map_error(_pipe@1, fun(Field@0) -> {actor_error, Field@0} end).
 
--spec start_actor(app(PLW, any(), PLY), PLW) -> {ok,
-        gleam@erlang@process:subject(lustre@internals@runtime:action(PLY, server_component()))} |
+-spec start_actor(app(PQO, any(), PQQ), PQO) -> {ok,
+        gleam@erlang@process:subject(lustre@internals@runtime:action(PQQ, server_component()))} |
     {error, error()}.
 start_actor(App, Flags) ->
     do_start_actor(App, Flags).
 
--spec start_server_component(app(PLM, any(), PLO), PLM) -> {ok,
-        fun((lustre@internals@runtime:action(PLO, server_component())) -> nil)} |
+-spec start_server_component(app(PQE, any(), PQG), PQE) -> {ok,
+        fun((lustre@internals@runtime:action(PQG, server_component())) -> nil)} |
     {error, error()}.
 start_server_component(App, Flags) ->
     gleam@result:map(
@@ -102,7 +102,7 @@ start_server_component(App, Flags) ->
 register(_, _) ->
     {error, not_a_browser}.
 
--spec dispatch(PMZ) -> lustre@internals@runtime:action(PMZ, any()).
+-spec dispatch(PRR) -> lustre@internals@runtime:action(PRR, any()).
 dispatch(Msg) ->
     {dispatch, Msg}.
 
@@ -114,8 +114,8 @@ shutdown() ->
 is_browser() ->
     false.
 
--spec start(app(PKS, any(), PKU), binary(), PKS) -> {ok,
-        fun((lustre@internals@runtime:action(PKU, client_spa())) -> nil)} |
+-spec start(app(PPK, any(), PPM), binary(), PPK) -> {ok,
+        fun((lustre@internals@runtime:action(PPM, client_spa())) -> nil)} |
     {error, error()}.
 start(App, Selector, Flags) ->
     gleam@bool:guard(

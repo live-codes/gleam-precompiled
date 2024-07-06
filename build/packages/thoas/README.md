@@ -36,18 +36,21 @@ gleam add thoas
 ```elixir
 # mix.exs
 def deps do
-  [{:thoas, "~> 0.3"}]
+  [{:thoas, "~> 1.0"}]
 end
 ```
 
 ## Basic Usage
 
 ```erlang
-> thoas:encode(#{age => 44, name => <<"Steve Irwin">>, nationality => <<"Australian">>}).
+> JSON = thoas:encode(#{age => 44, name => <<"Steve Irwin">>, nationality => <<"Australian">>}).
 <<"{\"age\":44,\"name\":\"Steve Irwin\",\"nationality\":\"Australian\"}">>
 
-> thoas:decode(<<"{\"age\":44,\"name\":\"Steve Irwin\",\"nationality\":\"Australian\"}">>).
-{ok, #{<<"age">> => 44, <<"name">> => <<"Steve Irwin">>, <<"nationality">> => <<"Australian">>}}
+> thoas:decode(JSON).
+{ok,#{<<"age">> => 44,<<"name">> => <<"Steve Irwin">>, <<"nationality">> => <<"Australian">>}}
+
+> thoas:decode(JSON, #{keys => to_existing_atom}).
+{ok,#{age => 44,name => <<"Steve Irwin">>, nationality => <<"Australian">>}}
 ```
 
 ## Erlang <-> JSON mapping
@@ -90,7 +93,6 @@ Thoas has some feature differences compared to Jason.
 - Thoas has no support for pretty-printing JSON.
 - Thoas has no support for detecting duplicate object keys.
 - Thoas has no support for decoding objects to ordered dictionaries.
-- Thoas has no support for decoding object keys as atoms.
 - Thoas has no support for decoding floats to Elixir decimals.
 - Thoas has an additional non-recursive encoder API that may be useful when
   working within statically typed languages such as Gleam.
@@ -108,7 +110,7 @@ languages or in highly performance constrained scenarios.
 
 ## Why is it called Thoas?
 
-Thoas was [a son of Jason](https://en.wikipedia.org/wiki/Thoas_(son_of_Jason)).
+Thoas is [a son of Jason](https://en.wikipedia.org/wiki/Thoas_(son_of_Jason)).
 
 ## License
 

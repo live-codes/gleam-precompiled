@@ -18,10 +18,13 @@ export class LustreServerComponent extends HTMLElement {
   #observer = null;
   #root = null;
   #socket = null;
+  #shadow = null;
+  #stylesOffset = 0;
 
   constructor() {
     super();
 
+    this.#shadow = this.attachShadow({ mode: "closed" });
     this.#observer = new MutationObserver((mutations) => {
       const changed = [];
 
@@ -47,8 +50,20 @@ export class LustreServerComponent extends HTMLElement {
   }
 
   connectedCallback() {
+    for (const link of document.querySelectorAll("link")) {
+      if (link.rel === "stylesheet") {
+        this.#shadow.appendChild(link.cloneNode(true));
+        this.#stylesOffset++;
+      }
+    }
+
+    for (const style of document.querySelectorAll("style")) {
+      this.#shadow.appendChild(style.cloneNode(true));
+      this.#stylesOffset++;
+    }
+
     this.#root = document.createElement("div");
-    this.appendChild(this.#root);
+    this.#shadow.appendChild(this.#root);
   }
 
   attributeChangedCallback(name, prev, next) {
@@ -60,9 +75,12 @@ export class LustreServerComponent extends HTMLElement {
         } else if (prev !== next) {
           const id = this.getAttribute("id");
           const route = next + (id ? `?id=${id}` : "");
+          const protocol = window.location.protocol === "https:" ? "wss" : "ws";
 
           this.#socket?.close();
-          this.#socket = new WebSocket(`ws://${window.location.host}${route}`);
+          this.#socket = new WebSocket(
+            `${protocol}://${window.location.host}${route}`,
+          );
           this.#socket.addEventListener("message", (message) =>
             this.messageReceivedCallback(message),
           );
@@ -137,16 +155,27 @@ export class LustreServerComponent extends HTMLElement {
 
   morph(vdom) {
     this.#root = morph(this.#root, vdom, (handler) => (event) => {
+      const data = JSON.parse(this.getAttribute("data-lustre-data") || "{}");
       const msg = handler(event);
+
+      msg.data = merge(data, msg.data);
+
       this.#socket?.send(JSON.stringify([Constants.event, msg.tag, msg.data]));
     });
   }
 
   diff([diff]) {
-    this.#root = patch(this.#root, diff, (handler) => (event) => {
-      const msg = handler(event);
-      this.#socket?.send(JSON.stringify([Constants.event, msg.tag, msg.data]));
-    });
+    this.#root = patch(
+      this.#root,
+      diff,
+      (handler) => (event) => {
+        const msg = handler(event);
+        this.#socket?.send(
+          JSON.stringify([Constants.event, msg.tag, msg.data]),
+        );
+      },
+      this.#stylesOffset,
+    );
   }
 
   emit([event, data]) {
@@ -156,6 +185,26 @@ export class LustreServerComponent extends HTMLElement {
   disconnectedCallback() {
     this.#socket?.close();
   }
+
+  get adoptedStyleSheets() {
+    return this.#shadow.adoptedStyleSheets;
+  }
+
+  set adoptedStyleSheets(value) {
+    this.#shadow.adoptedStyleSheets = value;
+  }
 }
 
 window.customElements.define("lustre-server-component", LustreServerComponent);
+
+// UTILS -----------------------------------------------------------------------
+
+function merge(target, source) {
+  for (const key in source) {
+    if (source[key] instanceof Object)
+      Object.assign(source[key], merge(target[key], source[key]));
+  }
+
+  Object.assign(target || {}, source);
+  return target;
+}

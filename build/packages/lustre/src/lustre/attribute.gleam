@@ -21,7 +21,8 @@ pub type Attribute(msg) =
 /// in JavaScript. Attributes will be rendered when calling [`element.to_string`](./element.html#to_string).
 ///
 /// **Note**: there is a subtle difference between attributes and properties. You
-/// can read more about the implications of this [here](https://javascript.info/dom-attributes-and-properties).
+/// can read more about the implications of this
+/// [here](https://github.com/lustre-labs/lustre/blob/main/pages/hints/attributes-vs-properties.md).
 ///
 pub fn attribute(name: String, value: String) -> Attribute(msg) {
   Attribute(name, dynamic.from(value), as_property: False)
@@ -32,7 +33,8 @@ pub fn attribute(name: String, value: String) -> Attribute(msg) {
 /// [`element.to_string`](./element.html#to_string).
 ///
 /// **Note**: there is a subtle difference between attributes and properties. You
-/// can read more about the implications of this [here](https://javascript.info/dom-attributes-and-properties).
+/// can read more about the implications of this
+/// [here](https://github.com/lustre-labs/lustre/blob/main/pages/hints/attributes-vs-properties.md).
 ///
 pub fn property(name: String, value: any) -> Attribute(msg) {
   Attribute(name, dynamic.from(value), as_property: True)
@@ -95,11 +97,11 @@ pub fn classes(names: List(#(String, Bool))) -> Attribute(msg) {
     "class",
     names
       |> list.filter_map(fn(class) {
-      case class.1 {
-        True -> Ok(class.0)
-        False -> Error(Nil)
-      }
-    })
+        case class.1 {
+          True -> Ok(class.0)
+          False -> Error(Nil)
+        }
+      })
       |> string.join(" "),
   )
 }
@@ -263,12 +265,12 @@ pub fn src(uri: String) -> Attribute(msg) {
 
 ///
 pub fn height(val: Int) -> Attribute(msg) {
-  property("height", int.to_string(val))
+  property("height", val)
 }
 
 ///
 pub fn width(val: Int) -> Attribute(msg) {
-  property("width", int.to_string(val))
+  property("width", val)
 }
 
 ///
@@ -338,4 +340,11 @@ pub fn form_novalidate(value: Bool) -> Attribute(msg) {
 ///
 pub fn form_target(target: String) -> Attribute(msg) {
   attribute("formtarget", target)
+}
+
+// DIALOGS ---------------------------------------------------------------------
+
+///
+pub fn open(is_open: Bool) -> Attribute(msg) {
+  property("open", is_open)
 }

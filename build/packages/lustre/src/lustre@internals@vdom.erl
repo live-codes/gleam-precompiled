@@ -1,33 +1,35 @@
 -module(lustre@internals@vdom).
 -compile([no_auto_import, nowarn_unused_vars, nowarn_unused_function, nowarn_nomatch]).
 
--export([attribute_to_json/2, attribute_to_event_handler/1, element_to_string/1, element_to_string_builder/1, element_to_json/1, handlers/1]).
+-export([attribute_to_json/2, attribute_to_event_handler/1, element_to_string/1, element_to_string_builder/1, element_to_json/2, handlers/1]).
 -export_type([element/1, attribute/1]).
 
--type element(NBP) :: {text, binary()} |
+-type element(NFO) :: {text, binary()} |
     {element,
         binary(),
         binary(),
         binary(),
-        list(attribute(NBP)),
-        list(element(NBP)),
+        list(attribute(NFO)),
+        list(element(NFO)),
         boolean(),
         boolean()} |
-    {map, fun(() -> element(NBP))} |
-    {fragment, list(element(NBP)), binary()}.
+    {map, fun(() -> element(NFO))} |
+    {fragment, list(element(NFO)), binary()}.
 
--type attribute(NBQ) :: {attribute,
+-type attribute(NFP) :: {attribute,
         binary(),
         gleam@dynamic:dynamic_(),
         boolean()} |
     {event,
         binary(),
-        fun((gleam@dynamic:dynamic_()) -> {ok, NBQ} |
+        fun((gleam@dynamic:dynamic_()) -> {ok, NFP} |
             {error, list(gleam@dynamic:decode_error())})}.
 
 -spec attribute_to_json(attribute(any()), binary()) -> {ok, gleam@json:json()} |
     {error, nil}.
 attribute_to_json(Attribute, Key) ->
+    True_atom = gleam@dynamic:from(true),
+    False_atom = gleam@dynamic:from(false),
     case Attribute of
         {attribute, _, _, true} ->
             {error, nil};
@@ -40,6 +42,26 @@ attribute_to_json(Attribute, Key) ->
                             [{<<"0"/utf8>>, gleam@json:string(Name)},
                                 {<<"1"/utf8>>,
                                     gleam@json:string(
+                                        gleam@dynamic:unsafe_coerce(Value)
+                                    )}]
+                        )};
+
+                <<"Atom"/utf8>> when (Value =:= True_atom) orelse (Value =:= False_atom) ->
+                    {ok,
+                        gleam@json:object(
+                            [{<<"0"/utf8>>, gleam@json:string(Name)},
+                                {<<"1"/utf8>>,
+                                    gleam@json:bool(
+                                        gleam@dynamic:unsafe_coerce(Value)
+                                    )}]
+                        )};
+
+                <<"Bool"/utf8>> ->
+                    {ok,
+                        gleam@json:object(
+                            [{<<"0"/utf8>>, gleam@json:string(Name)},
+                                {<<"1"/utf8>>,
+                                    gleam@json:bool(
                                         gleam@dynamic:unsafe_coerce(Value)
                                     )}]
                         )};
@@ -94,34 +116,6 @@ attribute_to_json(Attribute, Key) ->
                 )}
     end.
 
--spec escape(binary(), binary()) -> binary().
-escape(Escaped, Content) ->
-    case Content of
-        <<"<"/utf8, Rest/binary>> ->
-            escape(<<Escaped/binary, "&lt;"/utf8>>, Rest);
-
-        <<">"/utf8, Rest@1/binary>> ->
-            escape(<<Escaped/binary, "&gt;"/utf8>>, Rest@1);
-
-        <<"&"/utf8, Rest@2/binary>> ->
-            escape(<<Escaped/binary, "&amp;"/utf8>>, Rest@2);
-
-        <<"\""/utf8, Rest@3/binary>> ->
-            escape(<<Escaped/binary, "&quot;"/utf8>>, Rest@3);
-
-        <<"'"/utf8, Rest@4/binary>> ->
-            escape(<<Escaped/binary, "&#39;"/utf8>>, Rest@4);
-
-        _ ->
-            case gleam@string:pop_grapheme(Content) of
-                {ok, {X, Xs}} ->
-                    escape(<<Escaped/binary, X/binary>>, Xs);
-
-                {error, _} ->
-                    Escaped
-            end
-    end.
-
 -spec attribute_to_string_parts(attribute(any())) -> {ok, {binary(), binary()}} |
     {error, nil}.
 attribute_to_string_parts(Attr) ->
@@ -138,14 +132,34 @@ attribute_to_string_parts(Attr) ->
                 <<"Atom"/utf8>> when Value =:= True_atom ->
                     {ok, {Name, <<""/utf8>>}};
 
+                <<"Bool"/utf8>> when Value =:= True_atom ->
+                    {ok, {Name, <<""/utf8>>}};
+
                 <<"Boolean"/utf8>> when Value =:= True_atom ->
                     {ok, {Name, <<""/utf8>>}};
 
                 <<"Atom"/utf8>> ->
                     {error, nil};
 
+                <<"Bool"/utf8>> ->
+                    {error, nil};
+
                 <<"Boolean"/utf8>> ->
                     {error, nil};
+
+                <<"Int"/utf8>> ->
+                    {ok,
+                        {Name,
+                            gleam@int:to_string(
+                                gleam@dynamic:unsafe_coerce(Value)
+                            )}};
+
+                <<"Float"/utf8>> ->
+                    {ok,
+                        {Name,
+                            gleam@float:to_string(
+                                gleam@dynamic:unsafe_coerce(Value)
+                            )}};
 
                 _ when As_property ->
                     {error, nil};
@@ -176,23 +190,29 @@ attributes_to_string_builder(Attrs) ->
                         {Html, Class, Style, <<Inner_html/binary, Val/binary>>};
 
                     {ok, {<<"class"/utf8>>, Val@1}} when Class =:= <<""/utf8>> ->
-                        {Html, escape(<<""/utf8>>, Val@1), Style, Inner_html};
+                        {Html,
+                            lustre@internals@escape:escape(Val@1),
+                            Style,
+                            Inner_html};
 
                     {ok, {<<"class"/utf8>>, Val@2}} ->
                         {Html,
                             <<<<Class/binary, " "/utf8>>/binary,
-                                (escape(<<""/utf8>>, Val@2))/binary>>,
+                                (lustre@internals@escape:escape(Val@2))/binary>>,
                             Style,
                             Inner_html};
 
                     {ok, {<<"style"/utf8>>, Val@3}} when Style =:= <<""/utf8>> ->
-                        {Html, Class, escape(<<""/utf8>>, Val@3), Inner_html};
+                        {Html,
+                            Class,
+                            lustre@internals@escape:escape(Val@3),
+                            Inner_html};
 
                     {ok, {<<"style"/utf8>>, Val@4}} ->
                         {Html,
                             Class,
                             <<<<Style/binary, " "/utf8>>/binary,
-                                (escape(<<""/utf8>>, Val@4))/binary>>,
+                                (lustre@internals@escape:escape(Val@4))/binary>>,
                             Inner_html};
 
                     {ok, {Key, <<""/utf8>>}} ->
@@ -209,7 +229,7 @@ attributes_to_string_builder(Attrs) ->
                                 Html,
                                 <<<<<<<<" "/utf8, Key@1/binary>>/binary,
                                             "=\""/utf8>>/binary,
-                                        (escape(<<""/utf8>>, Val@5))/binary>>/binary,
+                                        (lustre@internals@escape:escape(Val@5))/binary>>/binary,
                                     "\""/utf8>>
                             ),
                             Class,
@@ -248,9 +268,9 @@ attributes_to_string_builder(Attrs) ->
                 )
         end, Inner_html@1}.
 
--spec attribute_to_event_handler(attribute(NDN)) -> {ok,
+-spec attribute_to_event_handler(attribute(NHK)) -> {ok,
         {binary(),
-            fun((gleam@dynamic:dynamic_()) -> {ok, NDN} |
+            fun((gleam@dynamic:dynamic_()) -> {ok, NHK} |
                 {error, list(gleam@dynamic:decode_error())})}} |
     {error, nil}.
 attribute_to_event_handler(Attribute) ->
@@ -283,7 +303,9 @@ do_element_to_string_builder(Element, Raw_text) ->
             gleam@string_builder:from_string(Content);
 
         {text, Content@1} ->
-            gleam@string_builder:from_string(escape(<<""/utf8>>, Content@1));
+            gleam@string_builder:from_string(
+                lustre@internals@escape:escape(Content@1)
+            );
 
         {map, Subtree} ->
             do_element_to_string_builder(Subtree(), Raw_text);
@@ -445,13 +467,13 @@ do_element_list_to_json(Elements, Key) ->
             fun(Element, Index) ->
                 Key@1 = <<<<Key/binary, "-"/utf8>>/binary,
                     (gleam@int:to_string(Index))/binary>>,
-                do_element_to_json(Element, Key@1)
+                element_to_json(Element, Key@1)
             end
         ))
     ).
 
--spec do_element_to_json(element(any()), binary()) -> gleam@json:json().
-do_element_to_json(Element, Key) ->
+-spec element_to_json(element(any()), binary()) -> gleam@json:json().
+element_to_json(Element, Key) ->
     case Element of
         {text, Content} ->
             gleam@json:object(
@@ -459,7 +481,7 @@ do_element_to_json(Element, Key) ->
             );
 
         {map, Subtree} ->
-            do_element_to_json(Subtree(), Key);
+            element_to_json(Subtree(), Key);
 
         {element, _, Namespace, Tag, Attrs, Children, Self_closing, Void} ->
             Attrs@1 = gleam@json:preprocessed_array(
@@ -479,19 +501,17 @@ do_element_to_json(Element, Key) ->
             );
 
         {fragment, Elements, _} ->
-            do_element_list_to_json(Elements, Key)
+            gleam@json:object(
+                [{<<"elements"/utf8>>, do_element_list_to_json(Elements, Key)}]
+            )
     end.
 
--spec element_to_json(element(any())) -> gleam@json:json().
-element_to_json(Element) ->
-    do_element_to_json(Element, <<"0"/utf8>>).
-
 -spec do_element_list_handlers(
-    list(element(NCE)),
-    gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, NCE} |
+    list(element(NGD)),
+    gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, NGD} |
         {error, list(gleam@dynamic:decode_error())})),
     binary()
-) -> gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, NCE} |
+) -> gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, NGD} |
     {error, list(gleam@dynamic:decode_error())})).
 do_element_list_handlers(Elements, Handlers, Key) ->
     gleam@list:index_fold(
@@ -505,11 +525,11 @@ do_element_list_handlers(Elements, Handlers, Key) ->
     ).
 
 -spec do_handlers(
-    element(NBW),
-    gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, NBW} |
+    element(NFV),
+    gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, NFV} |
         {error, list(gleam@dynamic:decode_error())})),
     binary()
-) -> gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, NBW} |
+) -> gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, NFV} |
     {error, list(gleam@dynamic:decode_error())})).
 do_handlers(Element, Handlers, Key) ->
     case Element of
@@ -543,8 +563,8 @@ do_handlers(Element, Handlers, Key) ->
             do_element_list_handlers(Elements, Handlers, Key)
     end.
 
--spec handlers(element(NBR)) -> gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok,
-        NBR} |
+-spec handlers(element(NFQ)) -> gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok,
+        NFQ} |
     {error, list(gleam@dynamic:decode_error())})).
 handlers(Element) ->
     do_handlers(Element, gleam@dict:new(), <<"0"/utf8>>).

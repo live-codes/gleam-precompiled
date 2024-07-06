@@ -1,5 +1,6 @@
 import gleam/dynamic
 import gleam/javascript/promise.{type Promise}
+import gleam/json.{type Json}
 import plinth/browser/event.{type Event}
 
 pub type Window
@@ -25,9 +26,18 @@ pub fn location() -> String
 @external(javascript, "../../window_ffi.mjs", "locationOf")
 pub fn location_of(window: Window) -> Result(String, String)
 
+@external(javascript, "../../window_ffi.mjs", "setLocation")
+pub fn set_location(window: Window, url: String) -> Nil
+
 // reload exists on the location object but exposed at top level here
 @external(javascript, "../../window_ffi.mjs", "reload")
 pub fn reload() -> Nil
+
+@external(javascript, "../../window_ffi.mjs", "reloadOf")
+pub fn reload_of(window: Window) -> Nil
+
+@external(javascript, "../../window_ffi.mjs", "focus")
+pub fn focus(window: Window) -> Nil
 
 // I'm not sure how much value there is in specific hash/search function
 
@@ -49,6 +59,27 @@ pub fn outer_height(window: Window) -> Int
 @external(javascript, "../../window_ffi.mjs", "outerWidth")
 pub fn outer_width(window: Window) -> Int
 
+@external(javascript, "../../window_ffi.mjs", "screenX")
+pub fn screen_x(window: Window) -> Int
+
+@external(javascript, "../../window_ffi.mjs", "screenY")
+pub fn screen_y(window: Window) -> Int
+
+@external(javascript, "../../window_ffi.mjs", "screenTop")
+pub fn screen_top(window: Window) -> Int
+
+@external(javascript, "../../window_ffi.mjs", "screenLeft")
+pub fn screen_left(window: Window) -> Int
+
+@external(javascript, "../../window_ffi.mjs", "scrollX")
+pub fn scroll_x(window: Window) -> Int
+
+@external(javascript, "../../window_ffi.mjs", "scrollY")
+pub fn scroll_y(window: Window) -> Int
+
+@external(javascript, "../../worker_ffi.mjs", "onMessage")
+pub fn on_message(worker: Window, handle: fn(Json) -> Nil) -> Nil
+
 @external(javascript, "../../window_ffi.mjs", "open")
 pub fn open(
   url: String,
@@ -69,10 +100,13 @@ pub fn queue_microtask(callback: fn() -> Nil) -> Nil
 pub type RequestID
 
 @external(javascript, "../../window_ffi.mjs", "requestAnimationFrame")
-pub fn request_animation_frame(callback: fn() -> Nil) -> RequestID
+pub fn request_animation_frame(callback: fn(Float) -> Nil) -> RequestID
 
 @external(javascript, "../../window_ffi.mjs", "cancelAnimationFrame")
 pub fn cancel_animation_frame(request_id: RequestID) -> Nil
 
 @external(javascript, "../../window_ffi.mjs", "eval_")
 pub fn eval(source: String) -> Result(dynamic.Dynamic, String)
+
+@external(javascript, "../../window_ffi.mjs", "import_")
+pub fn import_(source: String) -> Promise(Result(dynamic.Dynamic, String))

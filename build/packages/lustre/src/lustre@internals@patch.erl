@@ -4,29 +4,29 @@
 -export([attribute_diff_to_json/2, attributes/2, is_empty_element_diff/1, element_diff_to_json/1, patch_to_json/1, elements/2]).
 -export_type([patch/1, element_diff/1, attribute_diff/1]).
 
--type patch(NZI) :: {diff, element_diff(NZI)} |
+-type patch(ODN) :: {diff, element_diff(ODN)} |
     {emit, binary(), gleam@json:json()} |
-    {init, list(binary()), lustre@internals@vdom:element(NZI)}.
+    {init, list(binary()), lustre@internals@vdom:element(ODN)}.
 
--type element_diff(NZJ) :: {element_diff,
-        gleam@dict:dict(binary(), lustre@internals@vdom:element(NZJ)),
+-type element_diff(ODO) :: {element_diff,
+        gleam@dict:dict(binary(), lustre@internals@vdom:element(ODO)),
         gleam@set:set(binary()),
-        gleam@dict:dict(binary(), attribute_diff(NZJ)),
-        gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, NZJ} |
+        gleam@dict:dict(binary(), attribute_diff(ODO)),
+        gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, ODO} |
             {error, list(gleam@dynamic:decode_error())}))}.
 
--type attribute_diff(NZK) :: {attribute_diff,
-        gleam@set:set(lustre@internals@vdom:attribute(NZK)),
+-type attribute_diff(ODP) :: {attribute_diff,
+        gleam@set:set(lustre@internals@vdom:attribute(ODP)),
         gleam@set:set(binary()),
-        gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, NZK} |
+        gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, ODP} |
             {error, list(gleam@dynamic:decode_error())}))}.
 
 -spec do_attribute(
-    attribute_diff(OAJ),
+    attribute_diff(OEO),
     binary(),
-    {ok, lustre@internals@vdom:attribute(OAJ)} | {error, nil},
-    {ok, lustre@internals@vdom:attribute(OAJ)} | {error, nil}
-) -> attribute_diff(OAJ).
+    {ok, lustre@internals@vdom:attribute(OEO)} | {error, nil},
+    {ok, lustre@internals@vdom:attribute(OEO)} | {error, nil}
+) -> attribute_diff(OEO).
 do_attribute(Diff, Key, Old, New) ->
     case {Old, New} of
         {{error, _}, {error, _}} ->
@@ -68,6 +68,60 @@ do_attribute(Diff, Key, Old, New) ->
             )
     end.
 
+-spec do_key_sort(list(binary()), list(binary())) -> gleam@order:order().
+do_key_sort(Xs, Ys) ->
+    case {Xs, Ys} of
+        {[], []} ->
+            eq;
+
+        {[], _} ->
+            lt;
+
+        {_, []} ->
+            gt;
+
+        {[<<"-"/utf8>> | Xs@1], [<<"-"/utf8>> | Ys@1]} ->
+            do_key_sort(Xs@1, Ys@1);
+
+        {[X | Xs@2], [Y | Ys@2]} ->
+            _assert_subject = gleam@int:parse(X),
+            {ok, X@1} = case _assert_subject of
+                {ok, _} -> _assert_subject;
+                _assert_fail ->
+                    erlang:error(#{gleam_error => let_assert,
+                                message => <<"Assertion pattern match failed"/utf8>>,
+                                value => _assert_fail,
+                                module => <<"lustre/internals/patch"/utf8>>,
+                                function => <<"do_key_sort"/utf8>>,
+                                line => 298})
+            end,
+            _assert_subject@1 = gleam@int:parse(Y),
+            {ok, Y@1} = case _assert_subject@1 of
+                {ok, _} -> _assert_subject@1;
+                _assert_fail@1 ->
+                    erlang:error(#{gleam_error => let_assert,
+                                message => <<"Assertion pattern match failed"/utf8>>,
+                                value => _assert_fail@1,
+                                module => <<"lustre/internals/patch"/utf8>>,
+                                function => <<"do_key_sort"/utf8>>,
+                                line => 299})
+            end,
+            case gleam@int:compare(X@1, Y@1) of
+                eq ->
+                    do_key_sort(Xs@2, Ys@2);
+
+                Order ->
+                    Order
+            end
+    end.
+
+-spec key_sort(binary(), binary()) -> gleam@order:order().
+key_sort(X, Y) ->
+    do_key_sort(
+        gleam@string:split(X, <<"-"/utf8>>),
+        gleam@string:split(Y, <<"-"/utf8>>)
+    ).
+
 -spec attribute_diff_to_json(attribute_diff(any()), binary()) -> gleam@json:json().
 attribute_diff_to_json(Diff, Key) ->
     gleam@json:preprocessed_array(
@@ -97,8 +151,8 @@ attribute_diff_to_json(Diff, Key) ->
             )]
     ).
 
--spec zip(list(OAY), list(OAY)) -> list({gleam@option:option(OAY),
-    gleam@option:option(OAY)}).
+-spec zip(list(OFF), list(OFF)) -> list({gleam@option:option(OFF),
+    gleam@option:option(OFF)}).
 zip(Xs, Ys) ->
     case {Xs, Ys} of
         {[], []} ->
@@ -114,7 +168,7 @@ zip(Xs, Ys) ->
             [{none, {some, Y@1}} | zip([], Ys@2)]
     end.
 
--spec attribute_dict(list(lustre@internals@vdom:attribute(OBE))) -> gleam@dict:dict(binary(), lustre@internals@vdom:attribute(OBE)).
+-spec attribute_dict(list(lustre@internals@vdom:attribute(OFL))) -> gleam@dict:dict(binary(), lustre@internals@vdom:attribute(OFL)).
 attribute_dict(Attributes) ->
     gleam@list:fold(
         Attributes,
@@ -145,7 +199,7 @@ attribute_dict(Attributes) ->
                     case gleam@dict:get(Dict, <<"style"/utf8>>) of
                         {ok, {attribute, _, Styles, _}} ->
                             Styles@1 = gleam@dynamic:from(
-                                gleam@list:append(
+                                lists:append(
                                     gleam@dynamic:unsafe_coerce(Styles),
                                     gleam@dynamic:unsafe_coerce(Value@1)
                                 )
@@ -172,9 +226,9 @@ attribute_dict(Attributes) ->
     ).
 
 -spec attributes(
-    list(lustre@internals@vdom:attribute(OAD)),
-    list(lustre@internals@vdom:attribute(OAD))
-) -> attribute_diff(OAD).
+    list(lustre@internals@vdom:attribute(OEI)),
+    list(lustre@internals@vdom:attribute(OEI))
+) -> attribute_diff(OEI).
 attributes(Old, New) ->
     Old@1 = attribute_dict(Old),
     New@1 = attribute_dict(New),
@@ -198,9 +252,9 @@ attributes(Old, New) ->
         end
     ).
 
--spec event_handler(lustre@internals@vdom:attribute(OBK)) -> {ok,
+-spec event_handler(lustre@internals@vdom:attribute(OFR)) -> {ok,
         {binary(),
-            fun((gleam@dynamic:dynamic_()) -> {ok, OBK} |
+            fun((gleam@dynamic:dynamic_()) -> {ok, OFR} |
                 {error, list(gleam@dynamic:decode_error())})}} |
     {error, nil}.
 event_handler(Attribute) ->
@@ -234,36 +288,54 @@ is_empty_attribute_diff(Diff) ->
 element_diff_to_json(Diff) ->
     gleam@json:preprocessed_array(
         [gleam@json:preprocessed_array(
-                gleam@list:reverse(
-                    (gleam@dict:fold(
-                        erlang:element(2, Diff),
-                        [],
-                        fun(Array, Key, Element) ->
-                            Json = gleam@json:preprocessed_array(
-                                [gleam@json:string(Key),
-                                    lustre@internals@vdom:element_to_json(
-                                        Element
-                                    )]
-                            ),
-                            [Json | Array]
-                        end
-                    ))
+                lists:reverse(
+                    begin
+                        _pipe = maps:to_list(erlang:element(2, Diff)),
+                        _pipe@1 = gleam@list:sort(
+                            _pipe,
+                            fun(X, Y) ->
+                                key_sort(
+                                    erlang:element(1, X),
+                                    erlang:element(1, Y)
+                                )
+                            end
+                        ),
+                        gleam@list:fold(
+                            _pipe@1,
+                            [],
+                            fun(Array, Patch) ->
+                                {Key, Element} = Patch,
+                                Json = gleam@json:preprocessed_array(
+                                    [gleam@json:string(Key),
+                                        lustre@internals@vdom:element_to_json(
+                                            Element,
+                                            Key
+                                        )]
+                                ),
+                                [Json | Array]
+                            end
+                        )
+                    end
                 )
             ),
             gleam@json:preprocessed_array(
-                (gleam@set:fold(
-                    erlang:element(3, Diff),
-                    [],
-                    fun(Array@1, Key@1) ->
-                        Json@1 = gleam@json:preprocessed_array(
-                            [gleam@json:string(Key@1)]
-                        ),
-                        [Json@1 | Array@1]
-                    end
-                ))
+                begin
+                    _pipe@2 = gleam@set:to_list(erlang:element(3, Diff)),
+                    _pipe@3 = gleam@list:sort(_pipe@2, fun key_sort/2),
+                    gleam@list:fold(
+                        _pipe@3,
+                        [],
+                        fun(Array@1, Key@1) ->
+                            Json@1 = gleam@json:preprocessed_array(
+                                [gleam@json:string(Key@1)]
+                            ),
+                            [Json@1 | Array@1]
+                        end
+                    )
+                end
             ),
             gleam@json:preprocessed_array(
-                gleam@list:reverse(
+                lists:reverse(
                     (gleam@dict:fold(
                         erlang:element(4, Diff),
                         [],
@@ -305,16 +377,16 @@ patch_to_json(Patch) ->
             gleam@json:preprocessed_array(
                 [gleam@json:int(2),
                     gleam@json:array(Attrs, fun gleam@json:string/1),
-                    lustre@internals@vdom:element_to_json(Element)]
+                    lustre@internals@vdom:element_to_json(Element, <<"0"/utf8>>)]
             )
     end.
 
 -spec do_element_list(
-    element_diff(NZW),
-    list(lustre@internals@vdom:element(NZW)),
-    list(lustre@internals@vdom:element(NZW)),
+    element_diff(OEB),
+    list(lustre@internals@vdom:element(OEB)),
+    list(lustre@internals@vdom:element(OEB)),
     binary()
-) -> element_diff(NZW).
+) -> element_diff(OEB).
 do_element_list(Diff, Old_elements, New_elements, Key) ->
     Children = zip(Old_elements, New_elements),
     gleam@list:index_fold(
@@ -329,11 +401,11 @@ do_element_list(Diff, Old_elements, New_elements, Key) ->
     ).
 
 -spec do_elements(
-    element_diff(NZP),
-    gleam@option:option(lustre@internals@vdom:element(NZP)),
-    gleam@option:option(lustre@internals@vdom:element(NZP)),
+    element_diff(ODU),
+    gleam@option:option(lustre@internals@vdom:element(ODU)),
+    gleam@option:option(lustre@internals@vdom:element(ODU)),
     binary()
-) -> element_diff(NZP).
+) -> element_diff(ODU).
 do_elements(Diff, Old, New, Key) ->
     case {Old, New} of
         {none, none} ->
@@ -493,9 +565,9 @@ do_elements(Diff, Old, New, Key) ->
     end.
 
 -spec elements(
-    lustre@internals@vdom:element(NZL),
-    lustre@internals@vdom:element(NZL)
-) -> element_diff(NZL).
+    lustre@internals@vdom:element(ODQ),
+    lustre@internals@vdom:element(ODQ)
+) -> element_diff(ODQ).
 elements(Old, New) ->
     do_elements(
         {element_diff,
@@ -509,11 +581,11 @@ elements(Old, New) ->
     ).
 
 -spec fold_element_list_event_handlers(
-    gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, OBX} |
+    gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, OGE} |
         {error, list(gleam@dynamic:decode_error())})),
-    list(lustre@internals@vdom:element(OBX)),
+    list(lustre@internals@vdom:element(OGE)),
     binary()
-) -> gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, OBX} |
+) -> gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, OGE} |
     {error, list(gleam@dynamic:decode_error())})).
 fold_element_list_event_handlers(Handlers, Elements, Key) ->
     gleam@list:index_fold(
@@ -527,11 +599,11 @@ fold_element_list_event_handlers(Handlers, Elements, Key) ->
     ).
 
 -spec fold_event_handlers(
-    gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, OBP} |
+    gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, OFW} |
         {error, list(gleam@dynamic:decode_error())})),
-    lustre@internals@vdom:element(OBP),
+    lustre@internals@vdom:element(OFW),
     binary()
-) -> gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, OBP} |
+) -> gleam@dict:dict(binary(), fun((gleam@dynamic:dynamic_()) -> {ok, OFW} |
     {error, list(gleam@dynamic:decode_error())})).
 fold_event_handlers(Handlers, Element, Key) ->
     case Element of
@@ -547,11 +619,9 @@ fold_event_handlers(Handlers, Element, Key) ->
                 Handlers,
                 fun(Handlers@1, Attr) -> case event_handler(Attr) of
                         {ok, {Name, Handler}} ->
-                            Name@1 = gleam@string:drop_left(Name, 2),
                             gleam@dict:insert(
                                 Handlers@1,
-                                <<<<Key/binary, "-"/utf8>>/binary,
-                                    Name@1/binary>>,
+                                <<<<Key/binary, "-"/utf8>>/binary, Name/binary>>,
                                 Handler
                             );
 

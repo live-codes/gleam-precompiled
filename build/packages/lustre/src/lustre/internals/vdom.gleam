@@ -2,11 +2,13 @@
 
 import gleam/dict.{type Dict}
 import gleam/dynamic.{type Decoder, type Dynamic}
+import gleam/float
 import gleam/int
 import gleam/json.{type Json}
 import gleam/list
 import gleam/string
 import gleam/string_builder.{type StringBuilder}
+import lustre/internals/escape.{escape}
 
 // TYPES -----------------------------------------------------------------------
 
@@ -74,14 +76,10 @@ fn do_element_list_handlers(
 
 // CONVERSIONS: JSON -----------------------------------------------------------
 
-pub fn element_to_json(element: Element(msg)) -> Json {
-  do_element_to_json(element, "0")
-}
-
-fn do_element_to_json(element: Element(msg), key: String) -> Json {
+pub fn element_to_json(element: Element(msg), key: String) -> Json {
   case element {
     Text(content) -> json.object([#("content", json.string(content))])
-    Map(subtree) -> do_element_to_json(subtree(), key)
+    Map(subtree) -> element_to_json(subtree(), key)
     Element(_, namespace, tag, attrs, children, self_closing, void) -> {
       let attrs =
         json.preprocessed_array({
@@ -98,7 +96,8 @@ fn do_element_to_json(element: Element(msg), key: String) -> Json {
         #("void", json.bool(void)),
       ])
     }
-    Fragment(elements, _) -> do_element_list_to_json(elements, key)
+    Fragment(elements, _) ->
+      json.object([#("elements", do_element_list_to_json(elements, key))])
   }
 }
 
@@ -106,7 +105,7 @@ fn do_element_list_to_json(elements: List(Element(msg)), key: String) {
   json.preprocessed_array({
     use element, index <- list.index_map(elements)
     let key = key <> "-" <> int.to_string(index)
-    do_element_to_json(element, key)
+    element_to_json(element, key)
   })
 }
 
@@ -114,6 +113,9 @@ pub fn attribute_to_json(
   attribute: Attribute(msg),
   key: String,
 ) -> Result(Json, Nil) {
+  let true_atom = dynamic.from(True)
+  let false_atom = dynamic.from(False)
+
   case attribute {
     Attribute(_, _, True) -> Error(Nil)
     Attribute(name, value, as_property: False) -> {
@@ -126,7 +128,15 @@ pub fn attribute_to_json(
             ]),
           )
 
-        "Boolean" ->
+        "Atom" if value == true_atom || value == false_atom ->
+          Ok(
+            json.object([
+              #("0", json.string(name)),
+              #("1", json.bool(dynamic.unsafe_coerce(value))),
+            ]),
+          )
+
+        "Bool" | "Boolean" ->
           Ok(
             json.object([
               #("0", json.string(name)),
@@ -186,7 +196,7 @@ fn do_element_to_string_builder(
   case element {
     Text("") -> string_builder.new()
     Text(content) if raw_text -> string_builder.from_string(content)
-    Text(content) -> string_builder.from_string(escape("", content))
+    Text(content) -> string_builder.from_string(escape(content))
 
     Map(subtree) -> do_element_to_string_builder(subtree(), raw_text)
 
@@ -284,26 +294,26 @@ fn attributes_to_string_builder(
       )
       Ok(#("class", val)) if class == "" -> #(
         html,
-        escape("", val),
+        escape(val),
         style,
         inner_html,
       )
       Ok(#("class", val)) -> #(
         html,
-        class <> " " <> escape("", val),
+        class <> " " <> escape(val),
         style,
         inner_html,
       )
       Ok(#("style", val)) if style == "" -> #(
         html,
         class,
-        escape("", val),
+        escape(val),
         inner_html,
       )
       Ok(#("style", val)) -> #(
         html,
         class,
-        style <> " " <> escape("", val),
+        style <> " " <> escape(val),
         inner_html,
       )
       Ok(#(key, "")) -> #(
@@ -313,10 +323,7 @@ fn attributes_to_string_builder(
         inner_html,
       )
       Ok(#(key, val)) -> #(
-        string_builder.append(
-          html,
-          " " <> key <> "=\"" <> escape("", val) <> "\"",
-        ),
+        string_builder.append(html, " " <> key <> "=\"" <> escape(val) <> "\""),
         class,
         style,
         inner_html,
@@ -342,21 +349,6 @@ fn attributes_to_string_builder(
 
 // UTILS -----------------------------------------------------------------------
 
-fn escape(escaped: String, content: String) -> String {
-  case content {
-    "<" <> rest -> escape(escaped <> "&lt;", rest)
-    ">" <> rest -> escape(escaped <> "&gt;", rest)
-    "&" <> rest -> escape(escaped <> "&amp;", rest)
-    "\"" <> rest -> escape(escaped <> "&quot;", rest)
-    "'" <> rest -> escape(escaped <> "&#39;", rest)
-    _ ->
-      case string.pop_grapheme(content) {
-        Ok(#(x, xs)) -> escape(escaped <> x, xs)
-        Error(_) -> escaped
-      }
-  }
-}
-
 fn attribute_to_string_parts(
   attr: Attribute(msg),
 ) -> Result(#(String, String), Nil) {
@@ -372,10 +364,16 @@ fn attribute_to_string_parts(
         // want to render `disabled="false"` if the value is `false` we simply
         // want to omit the attribute altogether.
         //
-        // On the Erlang target, booleans are actually just the atoms `true` and
-        // `false`!
-        "Atom" | "Boolean" if value == true_atom -> Ok(#(name, ""))
-        "Atom" | "Boolean" -> Error(Nil)
+        // The behaviour of `dynamic.classify` on booleans on the Erlang target
+        // depends on what version of the standard library you have. <= 0.36.0
+        // will classify `true` and `false` as `"Atom"` but >= 0.37.0 will be
+        // smarter and classify them as `"Bool"`.
+        //
+        "Atom" | "Bool" | "Boolean" if value == true_atom -> Ok(#(name, ""))
+        "Atom" | "Bool" | "Boolean" -> Error(Nil)
+
+        "Int" -> Ok(#(name, int.to_string(dynamic.unsafe_coerce(value))))
+        "Float" -> Ok(#(name, float.to_string(dynamic.unsafe_coerce(value))))
 
         // For everything else, we care whether or not the attribute is actually
         // a property. Properties are *Javascript* values that aren't necessarily

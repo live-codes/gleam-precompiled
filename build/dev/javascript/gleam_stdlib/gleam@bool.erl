@@ -1,7 +1,7 @@
 -module(gleam@bool).
 -compile([no_auto_import, nowarn_unused_vars, nowarn_unused_function, nowarn_nomatch]).
 
--export(['and'/2, 'or'/2, negate/1, nor/2, nand/2, exclusive_or/2, exclusive_nor/2, compare/2, max/2, min/2, to_int/1, to_string/1, guard/3, lazy_guard/3]).
+-export(['and'/2, 'or'/2, negate/1, nor/2, nand/2, exclusive_or/2, exclusive_nor/2, compare/2, to_int/1, to_string/1, guard/3, lazy_guard/3]).
 
 -spec 'and'(boolean(), boolean()) -> boolean().
 'and'(A, B) ->
@@ -101,26 +101,6 @@ compare(A, B) ->
             lt
     end.
 
--spec max(boolean(), boolean()) -> boolean().
-max(A, B) ->
-    case A of
-        true ->
-            true;
-
-        false ->
-            B
-    end.
-
--spec min(boolean(), boolean()) -> boolean().
-min(A, B) ->
-    case A of
-        false ->
-            false;
-
-        true ->
-            B
-    end.
-
 -spec to_int(boolean()) -> integer().
 to_int(Bool) ->
     case Bool of
@@ -141,7 +121,7 @@ to_string(Bool) ->
             <<"True"/utf8>>
     end.
 
--spec guard(boolean(), DEP, fun(() -> DEP)) -> DEP.
+-spec guard(boolean(), DJG, fun(() -> DJG)) -> DJG.
 guard(Requirement, Consequence, Alternative) ->
     case Requirement of
         true ->
@@ -151,7 +131,7 @@ guard(Requirement, Consequence, Alternative) ->
             Alternative()
     end.
 
--spec lazy_guard(boolean(), fun(() -> DEQ), fun(() -> DEQ)) -> DEQ.
+-spec lazy_guard(boolean(), fun(() -> DJH), fun(() -> DJH)) -> DJH.
 lazy_guard(Requirement, Consequence, Alternative) ->
     case Requirement of
         true ->

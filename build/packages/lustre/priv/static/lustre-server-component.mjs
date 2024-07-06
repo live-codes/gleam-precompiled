@@ -46,21 +46,23 @@ function morph(prev, next, dispatch, isComponent = false) {
         stack.unshift({ prev: prev2, next: fragmentElement, parent });
         prev2 = prev2?.nextSibling;
       });
+    } else if (next2.subtree !== void 0) {
+      stack.push({ prev: prev2, next: next2, parent });
     }
   }
   return out;
 }
-function patch(root, diff2, dispatch) {
+function patch(root, diff2, dispatch, stylesOffset = 0) {
   const rootParent = root.parentNode;
   for (const created of diff2[0]) {
     const key = created[0].split("-");
     const next = created[1];
-    const prev = getDeepChild(rootParent, key);
+    const prev = getDeepChild(rootParent, key, stylesOffset);
     let result;
     if (prev !== null && prev !== rootParent) {
       result = morph(prev, next, dispatch);
     } else {
-      const parent = getDeepChild(rootParent, key.slice(0, -1));
+      const parent = getDeepChild(rootParent, key.slice(0, -1), stylesOffset);
       const temp = document.createTextNode("");
       parent.appendChild(temp);
       result = morph(temp, next, dispatch);
@@ -71,13 +73,13 @@ function patch(root, diff2, dispatch) {
   }
   for (const removed of diff2[1]) {
     const key = removed[0].split("-");
-    const deletedNode = getDeepChild(rootParent, key);
+    const deletedNode = getDeepChild(rootParent, key, stylesOffset);
     deletedNode.remove();
   }
   for (const updated of diff2[2]) {
     const key = updated[0].split("-");
     const patches = updated[1];
-    const prev = getDeepChild(rootParent, key);
+    const prev = getDeepChild(rootParent, key, stylesOffset);
     const handlersForEl = registeredHandlers.get(prev);
     for (const created of patches[0]) {
       const name = created[0];
@@ -128,7 +130,10 @@ function createElementNode({ prev, next, dispatch, stack }) {
     const name = attr[0];
     const value = attr[1];
     if (attr.as_property) {
-      el2[name] = value;
+      if (el2[name] !== value)
+        el2[name] = value;
+      if (canMorph)
+        prevAttributes.delete(name);
     } else if (name.startsWith("on")) {
       const eventName = name.slice(2);
       const callback = dispatch(value);
@@ -153,7 +158,7 @@ function createElementNode({ prev, next, dispatch, stack }) {
     } else if (name === "dangerous-unescaped-html") {
       innerHTML = value;
     } else {
-      if (typeof value === "string")
+      if (el2.getAttribute(name) !== value)
         el2.setAttribute(name, value);
       if (name === "value" || name === "selected")
         el2[name] = value;
@@ -238,7 +243,7 @@ function lustreGenericEventHandler(event2) {
   handlersForEventTarget.get(event2.type)(event2);
 }
 function lustreServerEventHandler(event2) {
-  const el2 = event2.target;
+  const el2 = event2.currentTarget;
   const tag = el2.getAttribute(`data-lustre-on-${event2.type}`);
   const data = JSON.parse(el2.getAttribute("data-lustre-data") || "{}");
   const include = JSON.parse(el2.getAttribute("data-lustre-include") || "[]");
@@ -281,13 +286,14 @@ function getKeyedChildren(el2) {
   }
   return keyedChildren;
 }
-function getDeepChild(el2, path) {
+function getDeepChild(el2, path, stylesOffset) {
   let n;
   let rest;
   let child = el2;
+  let isFirstInPath = true;
   while ([n, ...rest] = path, n !== void 0) {
-    console.log({ n, rest, child, path });
-    child = child.childNodes.item(n);
+    child = child.childNodes.item(isFirstInPath ? n + stylesOffset : n);
+    isFirstInPath = false;
     path = rest;
   }
   return child;
@@ -349,8 +355,11 @@ var LustreServerComponent = class extends HTMLElement {
   #observer = null;
   #root = null;
   #socket = null;
+  #shadow = null;
+  #stylesOffset = 0;
   constructor() {
     super();
+    this.#shadow = this.attachShadow({ mode: "closed" });
     this.#observer = new MutationObserver((mutations) => {
       const changed = [];
       for (const mutation of mutations) {
@@ -372,8 +381,18 @@ var LustreServerComponent = class extends HTMLElement {
     });
   }
   connectedCallback() {
+    for (const link of document.querySelectorAll("link")) {
+      if (link.rel === "stylesheet") {
+        this.#shadow.appendChild(link.cloneNode(true));
+        this.#stylesOffset++;
+      }
+    }
+    for (const style of document.querySelectorAll("style")) {
+      this.#shadow.appendChild(style.cloneNode(true));
+      this.#stylesOffset++;
+    }
     this.#root = document.createElement("div");
-    this.appendChild(this.#root);
+    this.#shadow.appendChild(this.#root);
   }
   attributeChangedCallback(name, prev, next) {
     switch (name) {
@@ -384,8 +403,11 @@ var LustreServerComponent = class extends HTMLElement {
         } else if (prev !== next) {
           const id = this.getAttribute("id");
           const route = next + (id ? `?id=${id}` : "");
+          const protocol = window.location.protocol === "https:" ? "wss" : "ws";
           this.#socket?.close();
-          this.#socket = new WebSocket(`ws://${window.location.host}${route}`);
+          this.#socket = new WebSocket(
+            `${protocol}://${window.location.host}${route}`
+          );
           this.#socket.addEventListener(
             "message",
             (message) => this.messageReceivedCallback(message)
@@ -448,15 +470,24 @@ var LustreServerComponent = class extends HTMLElement {
   }
   morph(vdom) {
     this.#root = morph(this.#root, vdom, (handler) => (event2) => {
+      const data = JSON.parse(this.getAttribute("data-lustre-data") || "{}");
       const msg = handler(event2);
+      msg.data = merge(data, msg.data);
       this.#socket?.send(JSON.stringify([event, msg.tag, msg.data]));
     });
   }
   diff([diff2]) {
-    this.#root = patch(this.#root, diff2, (handler) => (event2) => {
-      const msg = handler(event2);
-      this.#socket?.send(JSON.stringify([event, msg.tag, msg.data]));
-    });
+    this.#root = patch(
+      this.#root,
+      diff2,
+      (handler) => (event2) => {
+        const msg = handler(event2);
+        this.#socket?.send(
+          JSON.stringify([event, msg.tag, msg.data])
+        );
+      },
+      this.#stylesOffset
+    );
   }
   emit([event2, data]) {
     this.dispatchEvent(new CustomEvent(event2, { detail: data }));
@@ -464,8 +495,22 @@ var LustreServerComponent = class extends HTMLElement {
   disconnectedCallback() {
     this.#socket?.close();
   }
+  get adoptedStyleSheets() {
+    return this.#shadow.adoptedStyleSheets;
+  }
+  set adoptedStyleSheets(value) {
+    this.#shadow.adoptedStyleSheets = value;
+  }
 };
 window.customElements.define("lustre-server-component", LustreServerComponent);
+function merge(target, source) {
+  for (const key in source) {
+    if (source[key] instanceof Object)
+      Object.assign(source[key], merge(target[key], source[key]));
+  }
+  Object.assign(target || {}, source);
+  return target;
+}
 export {
   LustreServerComponent
 };

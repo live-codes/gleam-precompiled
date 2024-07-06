@@ -1,11 +1,11 @@
+@target(erlang)
+import gleam/bit_array
+import gleam/dict.{type Dict}
 import gleam/int
 import gleam/list
-import gleam/dict.{type Dict}
 import gleam/option.{type Option}
 import gleam/result
 import gleam/string_builder
-@target(erlang)
-import gleam/bit_array
 
 /// `Dynamic` data is data that we don't know the type of yet.
 /// We likely get data like this from interop with Erlang, or from
@@ -35,13 +35,7 @@ pub fn from(a) -> Dynamic {
 @external(javascript, "../gleam_stdlib.mjs", "identity")
 fn do_from(a: anything) -> Dynamic
 
-/// Unsafely casts a Dynamic value into any other type.
-///
-/// This is an escape hatch for the type system that may be useful when wrapping
-/// native Erlang APIs. It is to be used as a last measure only!
-///
-/// If you can avoid using this function, do!
-///
+@deprecated("This function undermines the type system and opens the door to cryptic runtime errors and incorrect behaviour")
 pub fn unsafe_coerce(a: Dynamic) -> anything {
   do_unsafe_coerce(a)
 }
@@ -67,6 +61,7 @@ pub fn dynamic(value: Dynamic) -> Result(Dynamic, List(DecodeError)) {
 ///
 /// ```gleam
 /// import gleam/bit_array
+///
 /// bit_array(from("Hello")) == bit_array.from_string("Hello")
 /// // -> True
 /// ```
@@ -349,19 +344,25 @@ pub fn list(
 /// ```
 ///
 /// ```gleam
+/// // `gleam/erlang/*` is available via the `gleam_erlang` package
 /// import gleam/erlang/atom
+///
 /// from(atom.from_string("null")) |> optional(string)
 /// // -> Ok(None)
 /// ```
 ///
 /// ```gleam
+/// // `gleam/erlang/*` is available via the `gleam_erlang` package
 /// import gleam/erlang/atom
+///
 /// from(atom.from_string("nil")) |> optional(string)
 /// // -> Ok(None)
 /// ```
 ///
 /// ```gleam
+/// // `gleam/erlang/*` is available via the `gleam_erlang` package
 /// import gleam/erlang/atom
+///
 /// from(atom.from_string("undefined")) |> optional(string)
 /// // -> Ok(None)
 /// ```

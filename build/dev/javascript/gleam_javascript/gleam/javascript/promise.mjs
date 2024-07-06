@@ -1,4 +1,6 @@
 import * as $dynamic from "../../../gleam_stdlib/gleam/dynamic.mjs";
+import { Error } from "../../gleam.mjs";
+import * as $array from "../../gleam/javascript/array.mjs";
 import {
   newPromise as new$,
   resolve,
@@ -12,9 +14,14 @@ import {
   all_promises as await6,
   all_promises as await_array,
   all_promises as do_await_list,
-} from "../../ffi.mjs";
-import { Error } from "../../gleam.mjs";
-import * as $array from "../../gleam/javascript/array.mjs";
+  race_promises as race2,
+  race_promises as race3,
+  race_promises as race4,
+  race_promises as race5,
+  race_promises as race6,
+  race_promises as race_list,
+  race_promises as race_array,
+} from "../../gleam_javascript_ffi.mjs";
 
 export {
   await$,
@@ -26,6 +33,13 @@ export {
   await_array,
   map,
   new$,
+  race2,
+  race3,
+  race4,
+  race5,
+  race6,
+  race_array,
+  race_list,
   rescue,
   resolve,
 };

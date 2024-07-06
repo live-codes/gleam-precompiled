@@ -1,4 +1,4 @@
-import { CustomType as $CustomType } from "../gleam.mjs";
+import { CustomType as $CustomType, isEqual } from "../gleam.mjs";
 import * as $dict from "../gleam/dict.mjs";
 import * as $list from "../gleam/list.mjs";
 import * as $result from "../gleam/result.mjs";
@@ -68,6 +68,14 @@ export function difference(first, second) {
   return drop(first, to_list(second));
 }
 
+export function is_subset(first, second) {
+  return isEqual(intersection(first, second), first);
+}
+
+export function is_disjoint(first, second) {
+  return isEqual(intersection(first, second), new$());
+}
+
 const token = undefined;
 
 export function insert(set, member) {
@@ -88,4 +96,8 @@ export function union(first, second) {
   let larger = $[0];
   let smaller = $[1];
   return fold(smaller, larger, insert);
+}
+
+export function symmetric_difference(first, second) {
+  return difference(union(first, second), intersection(first, second));
 }

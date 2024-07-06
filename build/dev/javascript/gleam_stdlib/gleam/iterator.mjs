@@ -417,6 +417,33 @@ export function find(haystack, is_desired) {
   return do_find(_pipe, is_desired);
 }
 
+function do_find_map(loop$continuation, loop$f) {
+  while (true) {
+    let continuation = loop$continuation;
+    let f = loop$f;
+    let $ = continuation();
+    if ($ instanceof Stop) {
+      return new Error(undefined);
+    } else {
+      let e = $[0];
+      let next = $[1];
+      let $1 = f(e);
+      if ($1.isOk()) {
+        let e$1 = $1[0];
+        return new Ok(e$1);
+      } else {
+        loop$continuation = next;
+        loop$f = f;
+      }
+    }
+  }
+}
+
+export function find_map(haystack, is_desired) {
+  let _pipe = haystack.continuation;
+  return do_find_map(_pipe, is_desired);
+}
+
 function do_index(continuation, next) {
   return () => {
     let $ = continuation();

@@ -1,4 +1,10 @@
-import { target } from "../../event_ffi.mjs";
-import * as $element from "../../plinth/browser/element.mjs";
+import * as $dynamic from "../../../gleam_stdlib/gleam/dynamic.mjs";
+import {
+  target,
+  key,
+  keyCode as key_code,
+  preventDefault as prevent_default,
+  stopPropagation as stop_propagation,
+} from "../../event_ffi.mjs";
 
-export { target };
+export { key, key_code, prevent_default, stop_propagation, target };

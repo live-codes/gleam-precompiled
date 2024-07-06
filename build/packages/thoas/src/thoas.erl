@@ -11,27 +11,33 @@
 ]).
 
 -type decode_options() :: #{
-    strings => reference | copy
+    strings => reference | copy,
+    keys => reference | copy | to_existing_atom | to_atom
 }.
 
 -type encode_options() :: #{
     escape => json | unicode | html | javascript
 }.
 
--type json_term() :: 
+-type json_term() ::
     integer() |
     float() |
     binary() |
     boolean() |
     'null' |
     list(json_term()) |
-    #{ binary() => json_term() }.
+    #{
+      binary() => json_term(),
+      atom() => json_term()
+    }.
 
--type input_term() :: 
+-type input_term() ::
     integer() |
     float() |
     binary() |
     atom() |
+    calendar:datetime() |
+    calendar:date() |
     list(input_term()) |
     list({binary() | atom(), input_term()}) |
     #{ binary() | atom() => input_term() }.
@@ -51,14 +57,27 @@ decode(Json) ->
 %%
 %% # Options
 %%
-%% - `strings`
-%%   - `reference` (default) - when possible thoas tries to create a
-%%      sub-binary into the original
-%%   - `copy` - always copies the strings. This option is especially 
-%%     useful when parts of the decoded data will be stored for a long time (in
-%%     ets or some process) to avoid keeping the reference to the original data.
+%% Decoding of keys and string values can be controlled with the options
+%% `strings` and `keys` respectively. They control how the values are decoded
+%% into the final Erlang term structure.
 %%
--spec decode(iodata(), decode_options()) -> 
+%% - Option values common to both `strings` and `keys`
+%%   - `reference` (default) - when possible thoas tries to create a
+%%     sub-binary into the original
+%%   - `copy` - always copies the sub-binary. This option is especially useful
+%%     when parts of the decoded data will be stored for a long time (in ETS
+%%     or some process state) to avoid keeping the reference to the original
+%%     data
+%%
+%% - Option values unique to `keys`
+%%   - `to_existing_atom` - convert keys to atoms if the atom already exists
+%%   - `to_atom` - convert all keys to new or existing atoms. **Caution:** only
+%%     use this if you know you need it, since atoms are not garbage
+%%     collected and there is a hard limit on the amount that can be created.
+%%     Should preferably only be used if the input data is trusted, or in
+%%     short running VM sessions
+%%
+-spec decode(iodata(), decode_options()) ->
     {ok, json_term()} | {error, decode_error()}.
 decode(Json, Options) when is_map(Options) ->
     Binary = iolist_to_binary(Json),

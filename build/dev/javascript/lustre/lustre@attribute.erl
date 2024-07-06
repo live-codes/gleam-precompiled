@@ -1,7 +1,7 @@
 -module(lustre@attribute).
 -compile([no_auto_import, nowarn_unused_vars, nowarn_unused_function, nowarn_nomatch]).
 
--export([attribute/2, property/2, on/2, map/2, style/1, class/1, none/0, classes/1, id/1, role/1, type_/1, value/1, checked/1, placeholder/1, selected/1, accept/1, accept_charset/1, msg/1, autocomplete/1, autofocus/1, disabled/1, name/1, pattern/1, readonly/1, required/1, for/1, max/1, min/1, step/1, cols/1, rows/1, wrap/1, href/1, target/1, download/1, rel/1, src/1, height/1, width/1, alt/1, autoplay/1, controls/1, loop/1, action/1, enctype/1, method/1, novalidate/1, form_action/1, form_enctype/1, form_method/1, form_novalidate/1, form_target/1]).
+-export([attribute/2, property/2, on/2, map/2, style/1, class/1, none/0, classes/1, id/1, role/1, type_/1, value/1, checked/1, placeholder/1, selected/1, accept/1, accept_charset/1, msg/1, autocomplete/1, autofocus/1, disabled/1, name/1, pattern/1, readonly/1, required/1, for/1, max/1, min/1, step/1, cols/1, rows/1, wrap/1, href/1, target/1, download/1, rel/1, src/1, height/1, width/1, alt/1, autoplay/1, controls/1, loop/1, action/1, enctype/1, method/1, novalidate/1, form_action/1, form_enctype/1, form_method/1, form_novalidate/1, form_target/1, open/1]).
 
 -spec attribute(binary(), binary()) -> lustre@internals@vdom:attribute(any()).
 attribute(Name, Value) ->
@@ -13,13 +13,13 @@ property(Name, Value) ->
 
 -spec on(
     binary(),
-    fun((gleam@dynamic:dynamic_()) -> {ok, NLS} |
+    fun((gleam@dynamic:dynamic_()) -> {ok, NPT} |
         {error, list(gleam@dynamic:decode_error())})
-) -> lustre@internals@vdom:attribute(NLS).
+) -> lustre@internals@vdom:attribute(NPT).
 on(Name, Handler) ->
     {event, <<"on"/utf8, Name/binary>>, Handler}.
 
--spec map(lustre@internals@vdom:attribute(NLX), fun((NLX) -> NLZ)) -> lustre@internals@vdom:attribute(NLZ).
+-spec map(lustre@internals@vdom:attribute(NPY), fun((NPY) -> NQA)) -> lustre@internals@vdom:attribute(NQA).
 map(Attr, F) ->
     case Attr of
         {attribute, Name, Value, As_property} ->
@@ -191,11 +191,11 @@ src(Uri) ->
 
 -spec height(integer()) -> lustre@internals@vdom:attribute(any()).
 height(Val) ->
-    property(<<"height"/utf8>>, gleam@int:to_string(Val)).
+    property(<<"height"/utf8>>, Val).
 
 -spec width(integer()) -> lustre@internals@vdom:attribute(any()).
 width(Val) ->
-    property(<<"width"/utf8>>, gleam@int:to_string(Val)).
+    property(<<"width"/utf8>>, Val).
 
 -spec alt(binary()) -> lustre@internals@vdom:attribute(any()).
 alt(Text) ->
@@ -248,3 +248,7 @@ form_novalidate(Value) ->
 -spec form_target(binary()) -> lustre@internals@vdom:attribute(any()).
 form_target(Target) ->
     attribute(<<"formtarget"/utf8>>, Target).
+
+-spec open(boolean()) -> lustre@internals@vdom:attribute(any()).
+open(Is_open) ->
+    property(<<"open"/utf8>>, Is_open).

@@ -51,8 +51,8 @@ bool(Data) ->
 shallow_list(Value) ->
     gleam_stdlib:decode_list(Value).
 
--spec optional(fun((dynamic_()) -> {ok, DIU} | {error, list(decode_error())})) -> fun((dynamic_()) -> {ok,
-        gleam@option:option(DIU)} |
+-spec optional(fun((dynamic_()) -> {ok, DNJ} | {error, list(decode_error())})) -> fun((dynamic_()) -> {ok,
+        gleam@option:option(DNJ)} |
     {error, list(decode_error())}).
 optional(Decode) ->
     fun(Value) -> gleam_stdlib:decode_option(Value, Decode) end.
@@ -78,8 +78,8 @@ at_least_decode_tuple_error(Size, Data) ->
     end,
     {error, [Error]}.
 
--spec any(list(fun((dynamic_()) -> {ok, DMU} | {error, list(decode_error())}))) -> fun((dynamic_()) -> {ok,
-        DMU} |
+-spec any(list(fun((dynamic_()) -> {ok, DRJ} | {error, list(decode_error())}))) -> fun((dynamic_()) -> {ok,
+        DRJ} |
     {error, list(decode_error())}).
 any(Decoders) ->
     fun(Data) -> case Decoders of
@@ -108,9 +108,9 @@ all_errors(Result) ->
     end.
 
 -spec decode1(
-    fun((DMY) -> DMZ),
-    fun((dynamic_()) -> {ok, DMY} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, DMZ} | {error, list(decode_error())}).
+    fun((DRN) -> DRO),
+    fun((dynamic_()) -> {ok, DRN} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, DRO} | {error, list(decode_error())}).
 decode1(Constructor, T1) ->
     fun(Value) -> case T1(Value) of
             {ok, A} ->
@@ -139,9 +139,9 @@ push_path(Error, Name) ->
     erlang:setelement(4, Error, [Name@3 | erlang:element(4, Error)]).
 
 -spec result(
-    fun((dynamic_()) -> {ok, DII} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DIK} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, {ok, DII} | {error, DIK}} |
+    fun((dynamic_()) -> {ok, DMX} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DMZ} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, {ok, DMX} | {error, DMZ}} |
     {error, list(decode_error())}).
 result(Decode_ok, Decode_error) ->
     fun(Value) ->
@@ -179,8 +179,8 @@ result(Decode_ok, Decode_error) ->
         )
     end.
 
--spec list(fun((dynamic_()) -> {ok, DIP} | {error, list(decode_error())})) -> fun((dynamic_()) -> {ok,
-        list(DIP)} |
+-spec list(fun((dynamic_()) -> {ok, DNE} | {error, list(decode_error())})) -> fun((dynamic_()) -> {ok,
+        list(DNE)} |
     {error, list(decode_error())}).
 list(Decoder_type) ->
     fun(Dynamic) ->
@@ -193,9 +193,9 @@ list(Decoder_type) ->
     end.
 
 -spec map_errors(
-    {ok, DHD} | {error, list(decode_error())},
+    {ok, DLS} | {error, list(decode_error())},
     fun((decode_error()) -> decode_error())
-) -> {ok, DHD} | {error, list(decode_error())}.
+) -> {ok, DLS} | {error, list(decode_error())}.
 map_errors(Result, F) ->
     gleam@result:map_error(
         Result,
@@ -231,8 +231,8 @@ string(Data) ->
 
 -spec field(
     any(),
-    fun((dynamic_()) -> {ok, DJE} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, DJE} | {error, list(decode_error())}).
+    fun((dynamic_()) -> {ok, DNT} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, DNT} | {error, list(decode_error())}).
 field(Name, Inner_type) ->
     fun(Value) ->
         Missing_field_error = {decode_error,
@@ -253,8 +253,8 @@ field(Name, Inner_type) ->
 
 -spec optional_field(
     any(),
-    fun((dynamic_()) -> {ok, DJI} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, gleam@option:option(DJI)} |
+    fun((dynamic_()) -> {ok, DNX} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, gleam@option:option(DNX)} |
     {error, list(decode_error())}).
 optional_field(Name, Inner_type) ->
     fun(Value) ->
@@ -277,8 +277,8 @@ optional_field(Name, Inner_type) ->
 
 -spec element(
     integer(),
-    fun((dynamic_()) -> {ok, DJQ} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, DJQ} | {error, list(decode_error())}).
+    fun((dynamic_()) -> {ok, DOF} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, DOF} | {error, list(decode_error())}).
 element(Index, Inner_type) ->
     fun(Data) ->
         gleam@result:'try'(
@@ -329,9 +329,9 @@ tuple_errors(Result, Name) ->
     end.
 
 -spec tuple2(
-    fun((dynamic_()) -> {ok, DKQ} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DKS} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, {DKQ, DKS}} | {error, list(decode_error())}).
+    fun((dynamic_()) -> {ok, DPF} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DPH} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, {DPF, DPH}} | {error, list(decode_error())}).
 tuple2(Decode1, Decode2) ->
     fun(Value) ->
         gleam@result:'try'(
@@ -355,10 +355,10 @@ tuple2(Decode1, Decode2) ->
     end.
 
 -spec tuple3(
-    fun((dynamic_()) -> {ok, DKV} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DKX} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DKZ} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, {DKV, DKX, DKZ}} | {error, list(decode_error())}).
+    fun((dynamic_()) -> {ok, DPK} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DPM} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DPO} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, {DPK, DPM, DPO}} | {error, list(decode_error())}).
 tuple3(Decode1, Decode2, Decode3) ->
     fun(Value) ->
         gleam@result:'try'(
@@ -386,11 +386,11 @@ tuple3(Decode1, Decode2, Decode3) ->
     end.
 
 -spec tuple4(
-    fun((dynamic_()) -> {ok, DLC} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DLE} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DLG} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DLI} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, {DLC, DLE, DLG, DLI}} |
+    fun((dynamic_()) -> {ok, DPR} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DPT} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DPV} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DPX} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, {DPR, DPT, DPV, DPX}} |
     {error, list(decode_error())}).
 tuple4(Decode1, Decode2, Decode3, Decode4) ->
     fun(Value) ->
@@ -423,12 +423,12 @@ tuple4(Decode1, Decode2, Decode3, Decode4) ->
     end.
 
 -spec tuple5(
-    fun((dynamic_()) -> {ok, DLL} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DLN} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DLP} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DLR} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DLT} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, {DLL, DLN, DLP, DLR, DLT}} |
+    fun((dynamic_()) -> {ok, DQA} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DQC} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DQE} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DQG} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DQI} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, {DQA, DQC, DQE, DQG, DQI}} |
     {error, list(decode_error())}).
 tuple5(Decode1, Decode2, Decode3, Decode4, Decode5) ->
     fun(Value) ->
@@ -469,13 +469,13 @@ tuple5(Decode1, Decode2, Decode3, Decode4, Decode5) ->
     end.
 
 -spec tuple6(
-    fun((dynamic_()) -> {ok, DLW} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DLY} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DMA} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DMC} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DME} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DMG} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, {DLW, DLY, DMA, DMC, DME, DMG}} |
+    fun((dynamic_()) -> {ok, DQL} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DQN} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DQP} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DQR} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DQT} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DQV} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, {DQL, DQN, DQP, DQR, DQT, DQV}} |
     {error, list(decode_error())}).
 tuple6(Decode1, Decode2, Decode3, Decode4, Decode5, Decode6) ->
     fun(Value) ->
@@ -526,9 +526,9 @@ tuple6(Decode1, Decode2, Decode3, Decode4, Decode5, Decode6) ->
     end.
 
 -spec dict(
-    fun((dynamic_()) -> {ok, DMJ} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DML} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, gleam@dict:dict(DMJ, DML)} |
+    fun((dynamic_()) -> {ok, DQY} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DRA} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, gleam@dict:dict(DQY, DRA)} |
     {error, list(decode_error())}).
 dict(Key_type, Value_type) ->
     fun(Value) ->
@@ -584,10 +584,10 @@ dict(Key_type, Value_type) ->
     end.
 
 -spec decode2(
-    fun((DNC, DND) -> DNE),
-    fun((dynamic_()) -> {ok, DNC} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DND} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, DNE} | {error, list(decode_error())}).
+    fun((DRR, DRS) -> DRT),
+    fun((dynamic_()) -> {ok, DRR} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DRS} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, DRT} | {error, list(decode_error())}).
 decode2(Constructor, T1, T2) ->
     fun(Value) -> case {T1(Value), T2(Value)} of
             {{ok, A}, {ok, B}} ->
@@ -598,11 +598,11 @@ decode2(Constructor, T1, T2) ->
         end end.
 
 -spec decode3(
-    fun((DNI, DNJ, DNK) -> DNL),
-    fun((dynamic_()) -> {ok, DNI} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DNJ} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DNK} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, DNL} | {error, list(decode_error())}).
+    fun((DRX, DRY, DRZ) -> DSA),
+    fun((dynamic_()) -> {ok, DRX} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DRY} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DRZ} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, DSA} | {error, list(decode_error())}).
 decode3(Constructor, T1, T2, T3) ->
     fun(Value) -> case {T1(Value), T2(Value), T3(Value)} of
             {{ok, A}, {ok, B}, {ok, C}} ->
@@ -616,12 +616,12 @@ decode3(Constructor, T1, T2, T3) ->
         end end.
 
 -spec decode4(
-    fun((DNQ, DNR, DNS, DNT) -> DNU),
-    fun((dynamic_()) -> {ok, DNQ} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DNR} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DNS} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DNT} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, DNU} | {error, list(decode_error())}).
+    fun((DSF, DSG, DSH, DSI) -> DSJ),
+    fun((dynamic_()) -> {ok, DSF} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DSG} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DSH} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DSI} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, DSJ} | {error, list(decode_error())}).
 decode4(Constructor, T1, T2, T3, T4) ->
     fun(X) -> case {T1(X), T2(X), T3(X), T4(X)} of
             {{ok, A}, {ok, B}, {ok, C}, {ok, D}} ->
@@ -638,13 +638,13 @@ decode4(Constructor, T1, T2, T3, T4) ->
         end end.
 
 -spec decode5(
-    fun((DOA, DOB, DOC, DOD, DOE) -> DOF),
-    fun((dynamic_()) -> {ok, DOA} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DOB} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DOC} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DOD} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DOE} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, DOF} | {error, list(decode_error())}).
+    fun((DSP, DSQ, DSR, DSS, DST) -> DSU),
+    fun((dynamic_()) -> {ok, DSP} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DSQ} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DSR} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DSS} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DST} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, DSU} | {error, list(decode_error())}).
 decode5(Constructor, T1, T2, T3, T4, T5) ->
     fun(X) -> case {T1(X), T2(X), T3(X), T4(X), T5(X)} of
             {{ok, A}, {ok, B}, {ok, C}, {ok, D}, {ok, E}} ->
@@ -662,14 +662,14 @@ decode5(Constructor, T1, T2, T3, T4, T5) ->
         end end.
 
 -spec decode6(
-    fun((DOM, DON, DOO, DOP, DOQ, DOR) -> DOS),
-    fun((dynamic_()) -> {ok, DOM} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DON} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DOO} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DOP} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DOQ} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DOR} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, DOS} | {error, list(decode_error())}).
+    fun((DTB, DTC, DTD, DTE, DTF, DTG) -> DTH),
+    fun((dynamic_()) -> {ok, DTB} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DTC} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DTD} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DTE} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DTF} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DTG} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, DTH} | {error, list(decode_error())}).
 decode6(Constructor, T1, T2, T3, T4, T5, T6) ->
     fun(X) -> case {T1(X), T2(X), T3(X), T4(X), T5(X), T6(X)} of
             {{ok, A}, {ok, B}, {ok, C}, {ok, D}, {ok, E}, {ok, F}} ->
@@ -688,15 +688,15 @@ decode6(Constructor, T1, T2, T3, T4, T5, T6) ->
         end end.
 
 -spec decode7(
-    fun((DPA, DPB, DPC, DPD, DPE, DPF, DPG) -> DPH),
-    fun((dynamic_()) -> {ok, DPA} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DPB} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DPC} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DPD} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DPE} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DPF} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DPG} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, DPH} | {error, list(decode_error())}).
+    fun((DTP, DTQ, DTR, DTS, DTT, DTU, DTV) -> DTW),
+    fun((dynamic_()) -> {ok, DTP} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DTQ} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DTR} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DTS} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DTT} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DTU} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DTV} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, DTW} | {error, list(decode_error())}).
 decode7(Constructor, T1, T2, T3, T4, T5, T6, T7) ->
     fun(X) -> case {T1(X), T2(X), T3(X), T4(X), T5(X), T6(X), T7(X)} of
             {{ok, A}, {ok, B}, {ok, C}, {ok, D}, {ok, E}, {ok, F}, {ok, G}} ->
@@ -716,16 +716,16 @@ decode7(Constructor, T1, T2, T3, T4, T5, T6, T7) ->
         end end.
 
 -spec decode8(
-    fun((DPQ, DPR, DPS, DPT, DPU, DPV, DPW, DPX) -> DPY),
-    fun((dynamic_()) -> {ok, DPQ} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DPR} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DPS} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DPT} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DPU} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DPV} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DPW} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DPX} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, DPY} | {error, list(decode_error())}).
+    fun((DUF, DUG, DUH, DUI, DUJ, DUK, DUL, DUM) -> DUN),
+    fun((dynamic_()) -> {ok, DUF} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DUG} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DUH} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DUI} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DUJ} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DUK} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DUL} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DUM} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, DUN} | {error, list(decode_error())}).
 decode8(Constructor, T1, T2, T3, T4, T5, T6, T7, T8) ->
     fun(X) -> case {T1(X), T2(X), T3(X), T4(X), T5(X), T6(X), T7(X), T8(X)} of
             {{ok, A},
@@ -753,17 +753,17 @@ decode8(Constructor, T1, T2, T3, T4, T5, T6, T7, T8) ->
         end end.
 
 -spec decode9(
-    fun((DQI, DQJ, DQK, DQL, DQM, DQN, DQO, DQP, DQQ) -> DQR),
-    fun((dynamic_()) -> {ok, DQI} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DQJ} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DQK} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DQL} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DQM} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DQN} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DQO} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DQP} | {error, list(decode_error())}),
-    fun((dynamic_()) -> {ok, DQQ} | {error, list(decode_error())})
-) -> fun((dynamic_()) -> {ok, DQR} | {error, list(decode_error())}).
+    fun((DUX, DUY, DUZ, DVA, DVB, DVC, DVD, DVE, DVF) -> DVG),
+    fun((dynamic_()) -> {ok, DUX} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DUY} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DUZ} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DVA} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DVB} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DVC} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DVD} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DVE} | {error, list(decode_error())}),
+    fun((dynamic_()) -> {ok, DVF} | {error, list(decode_error())})
+) -> fun((dynamic_()) -> {ok, DVG} | {error, list(decode_error())}).
 decode9(Constructor, T1, T2, T3, T4, T5, T6, T7, T8, T9) ->
     fun(X) ->
         case {T1(X), T2(X), T3(X), T4(X), T5(X), T6(X), T7(X), T8(X), T9(X)} of

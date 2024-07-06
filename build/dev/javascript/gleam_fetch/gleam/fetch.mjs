@@ -2,6 +2,7 @@ import * as $request from "../../gleam_http/gleam/http/request.mjs";
 import * as $response from "../../gleam_http/gleam/http/response.mjs";
 import * as $promise from "../../gleam_javascript/gleam/javascript/promise.mjs";
 import * as $dynamic from "../../gleam_stdlib/gleam/dynamic.mjs";
+import { Ok, CustomType as $CustomType } from "../gleam.mjs";
 import {
   raw_send,
   to_fetch_request,
@@ -10,8 +11,7 @@ import {
   read_bytes_body,
   read_text_body,
   read_json_body,
-} from "../ffi.mjs";
-import { Ok, CustomType as $CustomType } from "../gleam.mjs";
+} from "../gleam_fetch_ffi.mjs";
 
 export {
   bitarray_request_to_fetch_request,

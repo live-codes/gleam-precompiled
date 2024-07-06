@@ -1,4 +1,4 @@
 import * as $promise from "../../../gleam_javascript/gleam/javascript/promise.mjs";
-import { text, name, mime } from "../../file_ffi.mjs";
+import { new_ as new$, text, name, mime, createObjectURL as create_object_url } from "../../file_ffi.mjs";
 
-export { mime, name, text };
+export { create_object_url, mime, name, new$, text };

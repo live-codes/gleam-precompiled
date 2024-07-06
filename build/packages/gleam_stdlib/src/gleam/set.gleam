@@ -141,6 +141,7 @@ pub fn to_list(set: Set(member)) -> List(member) {
 /// ```gleam
 /// import gleam/int
 /// import gleam/list
+///
 /// [1, 1, 2, 4, 3, 2] |> from_list |> to_list |> list.sort(by: int.compare)
 /// // -> [1, 2, 3, 4]
 /// ```
@@ -185,6 +186,7 @@ pub fn fold(
 ///
 /// ```gleam
 /// import gleam/int
+///
 /// from_list([1, 4, 6, 3, 675, 44, 67])
 /// |> filter(for: int.is_even)
 /// |> to_list
@@ -198,6 +200,15 @@ pub fn filter(
   Set(dict.filter(in: set.dict, keeping: fn(m, _) { predicate(m) }))
 }
 
+/// Creates a new set from a given set with all the same entries except any
+/// entry found on the given list.
+///
+/// ## Examples
+///
+/// ```gleam
+/// drop(from_list([1, 2, 3, 4]), [1, 3])
+/// // -> [2, 4]
+/// ```
 pub fn drop(from set: Set(member), drop disallowed: List(member)) -> Set(member) {
   list.fold(over: disallowed, from: set, with: delete)
 }
@@ -277,4 +288,58 @@ pub fn difference(
   minus second: Set(member),
 ) -> Set(member) {
   drop(from: first, drop: to_list(second))
+}
+
+/// Determines if a set is fully contained by another.
+///
+/// ## Examples
+///
+/// ```gleam
+/// is_subset(from_list([1]), from_list([1, 2]))
+/// // -> True
+/// ```
+///
+/// ```gleam
+/// is_subset(from_list([1, 2, 3]), from_list([3, 4, 5]))
+/// // -> False
+/// ```
+///
+pub fn is_subset(first: Set(member), of second: Set(member)) -> Bool {
+  intersection(of: first, and: second) == first
+}
+
+/// Determines if two sets contain no common members
+///
+/// ## Examples
+///
+/// ```gleam
+/// is_disjoint(from_list([1, 2, 3], from_list([4, 5, 6])))
+/// // -> True
+/// ```
+///
+/// ```gleam
+/// is_disjoint(from_list([1, 2, 3]), from_list([3, 4, 5]))
+/// // -> False
+/// ```
+///
+pub fn is_disjoint(first: Set(member), from second: Set(member)) -> Bool {
+  intersection(of: first, and: second) == new()
+}
+
+/// Creates a new set that contains members that are present in either set, but
+/// not both.
+///
+/// ```gleam
+/// symmetric_difference(from_list([1, 2, 3]), from_list([3, 4])) |> to_list
+/// // -> [1, 2, 4]
+/// ```
+///
+pub fn symmetric_difference(
+  of first: Set(member),
+  and second: Set(member),
+) -> Set(member) {
+  difference(
+    from: union(of: first, and: second),
+    minus: intersection(of: first, and: second),
+  )
 }

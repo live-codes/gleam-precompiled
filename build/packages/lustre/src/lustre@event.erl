@@ -9,41 +9,41 @@ emit(Event, Data) ->
 
 -spec on(
     binary(),
-    fun((gleam@dynamic:dynamic_()) -> {ok, RLY} |
+    fun((gleam@dynamic:dynamic_()) -> {ok, RQQ} |
         {error, list(gleam@dynamic:decode_error())})
-) -> lustre@internals@vdom:attribute(RLY).
+) -> lustre@internals@vdom:attribute(RQQ).
 on(Name, Handler) ->
     lustre@attribute:on(Name, Handler).
 
--spec on_click(RMB) -> lustre@internals@vdom:attribute(RMB).
+-spec on_click(RQT) -> lustre@internals@vdom:attribute(RQT).
 on_click(Msg) ->
     on(<<"click"/utf8>>, fun(_) -> {ok, Msg} end).
 
--spec on_mouse_down(RMD) -> lustre@internals@vdom:attribute(RMD).
+-spec on_mouse_down(RQV) -> lustre@internals@vdom:attribute(RQV).
 on_mouse_down(Msg) ->
     on(<<"mousedown"/utf8>>, fun(_) -> {ok, Msg} end).
 
--spec on_mouse_up(RMF) -> lustre@internals@vdom:attribute(RMF).
+-spec on_mouse_up(RQX) -> lustre@internals@vdom:attribute(RQX).
 on_mouse_up(Msg) ->
     on(<<"mouseup"/utf8>>, fun(_) -> {ok, Msg} end).
 
--spec on_mouse_enter(RMH) -> lustre@internals@vdom:attribute(RMH).
+-spec on_mouse_enter(RQZ) -> lustre@internals@vdom:attribute(RQZ).
 on_mouse_enter(Msg) ->
     on(<<"mouseenter"/utf8>>, fun(_) -> {ok, Msg} end).
 
--spec on_mouse_leave(RMJ) -> lustre@internals@vdom:attribute(RMJ).
+-spec on_mouse_leave(RRB) -> lustre@internals@vdom:attribute(RRB).
 on_mouse_leave(Msg) ->
     on(<<"mouseleave"/utf8>>, fun(_) -> {ok, Msg} end).
 
--spec on_mouse_over(RML) -> lustre@internals@vdom:attribute(RML).
+-spec on_mouse_over(RRD) -> lustre@internals@vdom:attribute(RRD).
 on_mouse_over(Msg) ->
     on(<<"mouseover"/utf8>>, fun(_) -> {ok, Msg} end).
 
--spec on_mouse_out(RMN) -> lustre@internals@vdom:attribute(RMN).
+-spec on_mouse_out(RRF) -> lustre@internals@vdom:attribute(RRF).
 on_mouse_out(Msg) ->
     on(<<"mouseout"/utf8>>, fun(_) -> {ok, Msg} end).
 
--spec on_keypress(fun((binary()) -> RMP)) -> lustre@internals@vdom:attribute(RMP).
+-spec on_keypress(fun((binary()) -> RRH)) -> lustre@internals@vdom:attribute(RRH).
 on_keypress(Msg) ->
     on(<<"keypress"/utf8>>, fun(Event) -> _pipe = Event,
             _pipe@1 = (gleam@dynamic:field(
@@ -52,7 +52,7 @@ on_keypress(Msg) ->
             ))(_pipe),
             gleam@result:map(_pipe@1, Msg) end).
 
--spec on_keydown(fun((binary()) -> RMR)) -> lustre@internals@vdom:attribute(RMR).
+-spec on_keydown(fun((binary()) -> RRJ)) -> lustre@internals@vdom:attribute(RRJ).
 on_keydown(Msg) ->
     on(<<"keydown"/utf8>>, fun(Event) -> _pipe = Event,
             _pipe@1 = (gleam@dynamic:field(
@@ -61,7 +61,7 @@ on_keydown(Msg) ->
             ))(_pipe),
             gleam@result:map(_pipe@1, Msg) end).
 
--spec on_keyup(fun((binary()) -> RMT)) -> lustre@internals@vdom:attribute(RMT).
+-spec on_keyup(fun((binary()) -> RRL)) -> lustre@internals@vdom:attribute(RRL).
 on_keyup(Msg) ->
     on(<<"keyup"/utf8>>, fun(Event) -> _pipe = Event,
             _pipe@1 = (gleam@dynamic:field(
@@ -70,11 +70,11 @@ on_keyup(Msg) ->
             ))(_pipe),
             gleam@result:map(_pipe@1, Msg) end).
 
--spec on_focus(RNB) -> lustre@internals@vdom:attribute(RNB).
+-spec on_focus(RRT) -> lustre@internals@vdom:attribute(RRT).
 on_focus(Msg) ->
     on(<<"focus"/utf8>>, fun(_) -> {ok, Msg} end).
 
--spec on_blur(RND) -> lustre@internals@vdom:attribute(RND).
+-spec on_blur(RRV) -> lustre@internals@vdom:attribute(RRV).
 on_blur(Msg) ->
     on(<<"blur"/utf8>>, fun(_) -> {ok, Msg} end).
 
@@ -87,7 +87,7 @@ value(Event) ->
         gleam@dynamic:field(<<"value"/utf8>>, fun gleam@dynamic:string/1)
     ))(_pipe).
 
--spec on_input(fun((binary()) -> RMV)) -> lustre@internals@vdom:attribute(RMV).
+-spec on_input(fun((binary()) -> RRN)) -> lustre@internals@vdom:attribute(RRN).
 on_input(Msg) ->
     on(<<"input"/utf8>>, fun(Event) -> _pipe = value(Event),
             gleam@result:map(_pipe, Msg) end).
@@ -101,7 +101,7 @@ checked(Event) ->
         gleam@dynamic:field(<<"checked"/utf8>>, fun gleam@dynamic:bool/1)
     ))(_pipe).
 
--spec on_check(fun((boolean()) -> RMX)) -> lustre@internals@vdom:attribute(RMX).
+-spec on_check(fun((boolean()) -> RRP)) -> lustre@internals@vdom:attribute(RRP).
 on_check(Msg) ->
     on(<<"change"/utf8>>, fun(Event) -> _pipe = checked(Event),
             gleam@result:map(_pipe, Msg) end).
@@ -128,7 +128,7 @@ mouse_position(Event) ->
 prevent_default(_) ->
     nil.
 
--spec on_submit(RMZ) -> lustre@internals@vdom:attribute(RMZ).
+-spec on_submit(RRR) -> lustre@internals@vdom:attribute(RRR).
 on_submit(Msg) ->
     on(
         <<"submit"/utf8>>,

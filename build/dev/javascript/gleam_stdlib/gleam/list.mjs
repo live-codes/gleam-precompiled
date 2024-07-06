@@ -4,7 +4,6 @@ import {
   toList,
   prepend as listPrepend,
   CustomType as $CustomType,
-  divideInt,
   isEqual,
 } from "../gleam.mjs";
 import * as $dict from "../gleam/dict.mjs";
@@ -26,6 +25,10 @@ export class Stop extends $CustomType {
     this[0] = x0;
   }
 }
+
+class Ascending extends $CustomType {}
+
+class Descending extends $CustomType {}
 
 function count_length(loop$list, loop$count) {
   while (true) {
@@ -321,6 +324,10 @@ export function take(list, n) {
 
 export function new$() {
   return toList([]);
+}
+
+export function wrap(item) {
+  return toList([item]);
 }
 
 function do_append(loop$first, loop$second) {
@@ -671,17 +678,6 @@ export function intersperse(list, elem) {
   }
 }
 
-export function at(list, index) {
-  let $ = index >= 0;
-  if ($) {
-    let _pipe = list;
-    let _pipe$1 = drop(_pipe, index);
-    return first(_pipe$1);
-  } else {
-    return new Error(undefined);
-  }
-}
-
 export function unique(list) {
   if (list.hasLength(0)) {
     return toList([]);
@@ -695,152 +691,341 @@ export function unique(list) {
   }
 }
 
-function merge_up(loop$na, loop$nb, loop$a, loop$b, loop$acc, loop$compare) {
+function sequences(
+  loop$list,
+  loop$compare,
+  loop$growing,
+  loop$direction,
+  loop$prev,
+  loop$acc
+) {
   while (true) {
-    let na = loop$na;
-    let nb = loop$nb;
-    let a = loop$a;
-    let b = loop$b;
-    let acc = loop$acc;
+    let list = loop$list;
     let compare = loop$compare;
-    if (na === 0 && nb === 0) {
-      return acc;
-    } else if (nb === 0 && a.atLeastLength(1)) {
-      let ax = a.head;
-      let ar = a.tail;
-      loop$na = na - 1;
-      loop$nb = nb;
-      loop$a = ar;
-      loop$b = b;
-      loop$acc = listPrepend(ax, acc);
-      loop$compare = compare;
-    } else if (na === 0 && b.atLeastLength(1)) {
-      let bx = b.head;
-      let br = b.tail;
-      loop$na = na;
-      loop$nb = nb - 1;
-      loop$a = a;
-      loop$b = br;
-      loop$acc = listPrepend(bx, acc);
-      loop$compare = compare;
-    } else if (a.atLeastLength(1) && b.atLeastLength(1)) {
-      let ax = a.head;
-      let ar = a.tail;
-      let bx = b.head;
-      let br = b.tail;
-      let $ = compare(ax, bx);
-      if ($ instanceof $order.Gt) {
-        loop$na = na;
-        loop$nb = nb - 1;
-        loop$a = a;
-        loop$b = br;
-        loop$acc = listPrepend(bx, acc);
-        loop$compare = compare;
+    let growing = loop$growing;
+    let direction = loop$direction;
+    let prev = loop$prev;
+    let acc = loop$acc;
+    let growing$1 = listPrepend(prev, growing);
+    if (list.hasLength(0)) {
+      if (direction instanceof Ascending) {
+        return listPrepend(do_reverse(growing$1, toList([])), acc);
       } else {
-        loop$na = na - 1;
-        loop$nb = nb;
-        loop$a = ar;
-        loop$b = b;
-        loop$acc = listPrepend(ax, acc);
-        loop$compare = compare;
+        return listPrepend(growing$1, acc);
       }
     } else {
-      return acc;
+      let new$1 = list.head;
+      let rest$1 = list.tail;
+      let $ = compare(prev, new$1);
+      if ($ instanceof $order.Gt && direction instanceof Descending) {
+        loop$list = rest$1;
+        loop$compare = compare;
+        loop$growing = growing$1;
+        loop$direction = direction;
+        loop$prev = new$1;
+        loop$acc = acc;
+      } else if ($ instanceof $order.Lt && direction instanceof Ascending) {
+        loop$list = rest$1;
+        loop$compare = compare;
+        loop$growing = growing$1;
+        loop$direction = direction;
+        loop$prev = new$1;
+        loop$acc = acc;
+      } else if ($ instanceof $order.Eq && direction instanceof Ascending) {
+        loop$list = rest$1;
+        loop$compare = compare;
+        loop$growing = growing$1;
+        loop$direction = direction;
+        loop$prev = new$1;
+        loop$acc = acc;
+      } else if ($ instanceof $order.Gt && direction instanceof Ascending) {
+        let acc$1 = (() => {
+          if (direction instanceof Ascending) {
+            return listPrepend(do_reverse(growing$1, toList([])), acc);
+          } else {
+            return listPrepend(growing$1, acc);
+          }
+        })();
+        if (rest$1.hasLength(0)) {
+          return listPrepend(toList([new$1]), acc$1);
+        } else {
+          let next = rest$1.head;
+          let rest$2 = rest$1.tail;
+          let direction$1 = (() => {
+            let $1 = compare(new$1, next);
+            if ($1 instanceof $order.Lt) {
+              return new Ascending();
+            } else if ($1 instanceof $order.Eq) {
+              return new Ascending();
+            } else {
+              return new Descending();
+            }
+          })();
+          loop$list = rest$2;
+          loop$compare = compare;
+          loop$growing = toList([new$1]);
+          loop$direction = direction$1;
+          loop$prev = next;
+          loop$acc = acc$1;
+        }
+      } else if ($ instanceof $order.Lt && direction instanceof Descending) {
+        let acc$1 = (() => {
+          if (direction instanceof Ascending) {
+            return listPrepend(do_reverse(growing$1, toList([])), acc);
+          } else {
+            return listPrepend(growing$1, acc);
+          }
+        })();
+        if (rest$1.hasLength(0)) {
+          return listPrepend(toList([new$1]), acc$1);
+        } else {
+          let next = rest$1.head;
+          let rest$2 = rest$1.tail;
+          let direction$1 = (() => {
+            let $1 = compare(new$1, next);
+            if ($1 instanceof $order.Lt) {
+              return new Ascending();
+            } else if ($1 instanceof $order.Eq) {
+              return new Ascending();
+            } else {
+              return new Descending();
+            }
+          })();
+          loop$list = rest$2;
+          loop$compare = compare;
+          loop$growing = toList([new$1]);
+          loop$direction = direction$1;
+          loop$prev = next;
+          loop$acc = acc$1;
+        }
+      } else {
+        let acc$1 = (() => {
+          if (direction instanceof Ascending) {
+            return listPrepend(do_reverse(growing$1, toList([])), acc);
+          } else {
+            return listPrepend(growing$1, acc);
+          }
+        })();
+        if (rest$1.hasLength(0)) {
+          return listPrepend(toList([new$1]), acc$1);
+        } else {
+          let next = rest$1.head;
+          let rest$2 = rest$1.tail;
+          let direction$1 = (() => {
+            let $1 = compare(new$1, next);
+            if ($1 instanceof $order.Lt) {
+              return new Ascending();
+            } else if ($1 instanceof $order.Eq) {
+              return new Ascending();
+            } else {
+              return new Descending();
+            }
+          })();
+          loop$list = rest$2;
+          loop$compare = compare;
+          loop$growing = toList([new$1]);
+          loop$direction = direction$1;
+          loop$prev = next;
+          loop$acc = acc$1;
+        }
+      }
     }
   }
 }
 
-function merge_down(loop$na, loop$nb, loop$a, loop$b, loop$acc, loop$compare) {
+function merge_ascendings(loop$list1, loop$list2, loop$compare, loop$acc) {
   while (true) {
-    let na = loop$na;
-    let nb = loop$nb;
-    let a = loop$a;
-    let b = loop$b;
-    let acc = loop$acc;
+    let list1 = loop$list1;
+    let list2 = loop$list2;
     let compare = loop$compare;
-    if (na === 0 && nb === 0) {
-      return acc;
-    } else if (nb === 0 && a.atLeastLength(1)) {
-      let ax = a.head;
-      let ar = a.tail;
-      loop$na = na - 1;
-      loop$nb = nb;
-      loop$a = ar;
-      loop$b = b;
-      loop$acc = listPrepend(ax, acc);
-      loop$compare = compare;
-    } else if (na === 0 && b.atLeastLength(1)) {
-      let bx = b.head;
-      let br = b.tail;
-      loop$na = na;
-      loop$nb = nb - 1;
-      loop$a = a;
-      loop$b = br;
-      loop$acc = listPrepend(bx, acc);
-      loop$compare = compare;
-    } else if (a.atLeastLength(1) && b.atLeastLength(1)) {
-      let ax = a.head;
-      let ar = a.tail;
-      let bx = b.head;
-      let br = b.tail;
-      let $ = compare(bx, ax);
+    let acc = loop$acc;
+    if (list1.hasLength(0)) {
+      let list = list2;
+      return do_reverse(list, acc);
+    } else if (list2.hasLength(0)) {
+      let list = list1;
+      return do_reverse(list, acc);
+    } else {
+      let first1 = list1.head;
+      let rest1 = list1.tail;
+      let first2 = list2.head;
+      let rest2 = list2.tail;
+      let $ = compare(first1, first2);
       if ($ instanceof $order.Lt) {
-        loop$na = na - 1;
-        loop$nb = nb;
-        loop$a = ar;
-        loop$b = b;
-        loop$acc = listPrepend(ax, acc);
+        loop$list1 = rest1;
+        loop$list2 = list2;
         loop$compare = compare;
+        loop$acc = listPrepend(first1, acc);
+      } else if ($ instanceof $order.Gt) {
+        loop$list1 = list1;
+        loop$list2 = rest2;
+        loop$compare = compare;
+        loop$acc = listPrepend(first2, acc);
       } else {
-        loop$na = na;
-        loop$nb = nb - 1;
-        loop$a = a;
-        loop$b = br;
-        loop$acc = listPrepend(bx, acc);
+        loop$list1 = list1;
+        loop$list2 = rest2;
         loop$compare = compare;
+        loop$acc = listPrepend(first2, acc);
       }
-    } else {
-      return acc;
     }
   }
 }
 
-function merge_sort(l, ln, compare, down) {
-  let n = divideInt(ln, 2);
-  let a = l;
-  let b = drop(l, n);
-  let $ = ln < 3;
-  if ($) {
-    if (down) {
-      return merge_down(n, ln - n, a, b, toList([]), compare);
+function merge_ascending_pairs(loop$sequences, loop$compare, loop$acc) {
+  while (true) {
+    let sequences = loop$sequences;
+    let compare = loop$compare;
+    let acc = loop$acc;
+    if (sequences.hasLength(0)) {
+      return do_reverse(acc, toList([]));
+    } else if (sequences.hasLength(1)) {
+      let sequence = sequences.head;
+      return do_reverse(
+        listPrepend(do_reverse(sequence, toList([])), acc),
+        toList([]),
+      );
     } else {
-      return merge_up(n, ln - n, a, b, toList([]), compare);
+      let ascending1 = sequences.head;
+      let ascending2 = sequences.tail.head;
+      let rest$1 = sequences.tail.tail;
+      let descending = merge_ascendings(
+        ascending1,
+        ascending2,
+        compare,
+        toList([]),
+      );
+      loop$sequences = rest$1;
+      loop$compare = compare;
+      loop$acc = listPrepend(descending, acc);
     }
-  } else {
-    if (down) {
-      return merge_down(
-        n,
-        ln - n,
-        merge_sort(a, n, compare, false),
-        merge_sort(b, ln - n, compare, false),
+  }
+}
+
+function merge_descendings(loop$list1, loop$list2, loop$compare, loop$acc) {
+  while (true) {
+    let list1 = loop$list1;
+    let list2 = loop$list2;
+    let compare = loop$compare;
+    let acc = loop$acc;
+    if (list1.hasLength(0)) {
+      let list = list2;
+      return do_reverse(list, acc);
+    } else if (list2.hasLength(0)) {
+      let list = list1;
+      return do_reverse(list, acc);
+    } else {
+      let first1 = list1.head;
+      let rest1 = list1.tail;
+      let first2 = list2.head;
+      let rest2 = list2.tail;
+      let $ = compare(first1, first2);
+      if ($ instanceof $order.Lt) {
+        loop$list1 = list1;
+        loop$list2 = rest2;
+        loop$compare = compare;
+        loop$acc = listPrepend(first2, acc);
+      } else if ($ instanceof $order.Gt) {
+        loop$list1 = rest1;
+        loop$list2 = list2;
+        loop$compare = compare;
+        loop$acc = listPrepend(first1, acc);
+      } else {
+        loop$list1 = rest1;
+        loop$list2 = list2;
+        loop$compare = compare;
+        loop$acc = listPrepend(first1, acc);
+      }
+    }
+  }
+}
+
+function merge_descending_pairs(loop$sequences, loop$compare, loop$acc) {
+  while (true) {
+    let sequences = loop$sequences;
+    let compare = loop$compare;
+    let acc = loop$acc;
+    if (sequences.hasLength(0)) {
+      return do_reverse(acc, toList([]));
+    } else if (sequences.hasLength(1)) {
+      let sequence = sequences.head;
+      return do_reverse(
+        listPrepend(do_reverse(sequence, toList([])), acc),
         toList([]),
-        compare,
       );
     } else {
-      return merge_up(
-        n,
-        ln - n,
-        merge_sort(a, n, compare, true),
-        merge_sort(b, ln - n, compare, true),
-        toList([]),
+      let descending1 = sequences.head;
+      let descending2 = sequences.tail.head;
+      let rest$1 = sequences.tail.tail;
+      let ascending = merge_descendings(
+        descending1,
+        descending2,
         compare,
+        toList([]),
       );
+      loop$sequences = rest$1;
+      loop$compare = compare;
+      loop$acc = listPrepend(ascending, acc);
+    }
+  }
+}
+
+function merge_all(loop$sequences, loop$direction, loop$compare) {
+  while (true) {
+    let sequences = loop$sequences;
+    let direction = loop$direction;
+    let compare = loop$compare;
+    if (sequences.hasLength(0)) {
+      return toList([]);
+    } else if (sequences.hasLength(1) && direction instanceof Ascending) {
+      let sequence = sequences.head;
+      return sequence;
+    } else if (sequences.hasLength(1) && direction instanceof Descending) {
+      let sequence = sequences.head;
+      return do_reverse(sequence, toList([]));
+    } else if (direction instanceof Ascending) {
+      let sequences$1 = merge_ascending_pairs(sequences, compare, toList([]));
+      loop$sequences = sequences$1;
+      loop$direction = new Descending();
+      loop$compare = compare;
+    } else {
+      let sequences$1 = merge_descending_pairs(sequences, compare, toList([]));
+      loop$sequences = sequences$1;
+      loop$direction = new Ascending();
+      loop$compare = compare;
     }
   }
 }
 
 export function sort(list, compare) {
-  return merge_sort(list, length(list), compare, true);
+  if (list.hasLength(0)) {
+    return toList([]);
+  } else if (list.hasLength(1)) {
+    let x = list.head;
+    return toList([x]);
+  } else {
+    let x = list.head;
+    let y = list.tail.head;
+    let rest$1 = list.tail.tail;
+    let direction = (() => {
+      let $ = compare(x, y);
+      if ($ instanceof $order.Lt) {
+        return new Ascending();
+      } else if ($ instanceof $order.Eq) {
+        return new Ascending();
+      } else {
+        return new Descending();
+      }
+    })();
+    let sequences$1 = sequences(
+      rest$1,
+      compare,
+      toList([x]),
+      direction,
+      y,
+      toList([]),
+    );
+    return merge_all(sequences$1, new Ascending(), compare);
+  }
 }
 
 function tail_recursive_range(loop$start, loop$stop, loop$acc) {

@@ -1,5 +1,9 @@
-export function setTimeout(callback, delay) {
-  globalThis.setTimeout(callback, delay);
+export function setTimeout(delay, callback) {
+  return globalThis.setTimeout(callback, delay);
+}
+
+export function clearTimeout(timer) {
+  globalThis.clearTimeout(timer);
 }
 
 export function encodeURI(value) {
