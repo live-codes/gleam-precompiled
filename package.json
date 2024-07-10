@@ -1,9 +1,11 @@
 {
   "name": "@live-codes/gleam-precompiled",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Gleam wasm compiler and precompiled Gleam standard library and some packages for use in LiveCodes.",
   "main": "demo/hello.js",
-  "scripts": {},
+  "scripts": {
+    "build": "gleam build -t javascript"
+  },
   "author": "Hatem Hosny",
   "license": "MIT"
 }
